@@ -1,0 +1,2 @@
+BSP_STM32F446E.c:26:6:delay_us	16	static
+BSP_STM32F446E.c:44:6:Push_Beep_Button	8	static
