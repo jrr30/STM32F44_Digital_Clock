@@ -9,7 +9,7 @@
 #include "main.h"
 #include <stdint.h>
 
-TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim5;
 
 /**
   * @brief  Sets a timer in microseconds.
