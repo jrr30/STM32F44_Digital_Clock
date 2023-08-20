@@ -26,6 +26,13 @@
 #include "Digital_Clock.h"
 #include "RTC.h"
 #include "BSP_STM32F44E.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
+#include "SchM_DigitalClock.h"
+
 extern void Set_Alarm(RTC_HandleTypeDef * Ghrtc);
 extern void delay_us(uint32_t microseconds);
 /* USER CODE END Includes */
@@ -66,7 +73,7 @@ static void MX_UART4_Init(void);
 const uint8_t text[] = "Setting Date";
 G_Flags_T G_Status_F;
 G_Variables_T G_Variables;
-uint8_t global_counter = 0x04u;
+uint8_t global_counter = 0x00u;
 
 /* USER CODE END PFP */
 
@@ -111,6 +118,7 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim5);
+
   LCD_Config();
   /* USER CODE END 2 */
 
