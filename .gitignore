@@ -1,0 +1,8 @@
+# Debug files
+Debug/
+
+# Extra files
+Results_Project/
+
+#ST IDE configurations
+.settings/
