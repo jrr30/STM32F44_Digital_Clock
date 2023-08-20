@@ -1,4 +1,0 @@
-../Core/Src/RTC.c:16:6:Set_Time_Date	48	static
-../Core/Src/RTC.c:42:6:Get_Time_Date	24	static
-../Core/Src/RTC.c:48:6:Set_Alarm	56	static
-../Core/Src/RTC.c:77:6:Alarm_sound	16	static

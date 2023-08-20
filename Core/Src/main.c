@@ -66,7 +66,7 @@ static void MX_UART4_Init(void);
 const uint8_t text[] = "Setting Date";
 G_Flags_T G_Status_F;
 G_Variables_T G_Variables;
-uint8_t global_counter = 0x00;
+uint8_t global_counter = 0x04u;
 
 /* USER CODE END PFP */
 
