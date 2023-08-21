@@ -120,6 +120,12 @@ int main(void)
   HAL_TIM_Base_Start(&htim5);
 
   LCD_Config();
+
+//  SEGGER_SYSVIEW_Conf();
+//
+//  Task_Generation();
+//  vTaskStartScheduler();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */

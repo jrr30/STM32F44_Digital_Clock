@@ -39,7 +39,7 @@ void Get_RTC_Runnable(void * parameters)
 {
 	for(;;)
 	{
-		taskYIELD();
+//		taskYIELD();
 	}
 }
 
@@ -58,7 +58,7 @@ void Print_Time_Runnable(void * parameters)
 {
 	for(;;)
 	{
-		taskYIELD();
+//		taskYIELD();
 	}
 }
 
@@ -67,7 +67,7 @@ void Process_UART_Data_Runnable(void * parameters)
 
 	for(;;)
 	{
-		taskYIELD();
+//		taskYIELD();
 	}
 }
 

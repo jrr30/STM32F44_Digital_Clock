@@ -66,7 +66,7 @@ extern const SEGGER_SYSVIEW_OS_API SYSVIEW_X_OS_TraceAPI;
 #define SYSVIEW_APP_NAME        "FreeRTOS Clock Application"
 
 // The target device name
-#define SYSVIEW_DEVICE_NAME     "STM32F44"
+#define SYSVIEW_DEVICE_NAME     "STM32F446RET6TR"
 
 // Frequency of the timestamp. Must match SEGGER_SYSVIEW_GET_TIMESTAMP in SEGGER_SYSVIEW_Conf.h
 #define SYSVIEW_TIMESTAMP_FREQ  (configCPU_CLOCK_HZ)
@@ -76,6 +76,21 @@ extern const SEGGER_SYSVIEW_OS_API SYSVIEW_X_OS_TraceAPI;
 
 // The lowest RAM address used for IDs (pointers)
 #define SYSVIEW_RAM_BASE        (0x10000000)
+
+
+#define DEMCR (*(volatile U32*) (0xE000EDFCuL))
+// Debug Exception and Monitor Control Register
+#define TRACEENA_BIT (1uL << 24) // Trace enable bit
+#define DWT_CTRL (*(volatile U32*) (0xE0001000uL)) // DWT Control Register
+#define NOCYCCNT_BIT (1uL << 25)
+// Cycle counter support bit
+#define CYCCNTENA_BIT (1uL << 0)
+// Cycle counter enable bit
+//
+// If events will be recorded without a debug probe (J-Link) attached,
+// enable the cycle counter
+//
+#define ENABLE_DWT_CYCCNT (SEGGER_SYSVIEW_POST_MORTEM_MODE || SEGGER_SYSVIEW_USE_INTERNAL_RECORDER)
 
 /********************************************************************* 
 *
@@ -96,9 +111,37 @@ static void _cbSendSystemDesc(void) {
 **********************************************************************
 */
 void SEGGER_SYSVIEW_Conf(void) {
-  SEGGER_SYSVIEW_Init(SYSVIEW_TIMESTAMP_FREQ, SYSVIEW_CPU_FREQ, 
-                      &SYSVIEW_X_OS_TraceAPI, _cbSendSystemDesc);
-  SEGGER_SYSVIEW_SetRAMBase(SYSVIEW_RAM_BASE);
+
+#if ENABLE_DWT_CYCCNT
+//
+// If no debugger is connected, the DWT must be enabled by the application
+//
+	if ((DEMCR & TRACEENA_BIT) == 0)
+	{
+		DEMCR |= TRACEENA_BIT;
+	}
+#endif
+//
+// The cycle counter must be activated in order
+// to use time related functions.
+//
+	if ((DWT_CTRL & NOCYCCNT_BIT) == 0)
+	{
+		// Cycle counter supported?
+		if ((DWT_CTRL & CYCCNTENA_BIT) == 0)
+		{
+			// Cycle counter not enabled?
+			DWT_CTRL |= CYCCNTENA_BIT; // Enable Cycle counter
+		}
+	}
+	  SEGGER_SYSVIEW_Init(SYSVIEW_TIMESTAMP_FREQ, SYSVIEW_CPU_FREQ,
+	                      &SYSVIEW_X_OS_TraceAPI, _cbSendSystemDesc);
+	  SEGGER_SYSVIEW_SetRAMBase(SYSVIEW_RAM_BASE);
+
+#if SEGGER_SYSVIEW_START_ON_INIT
+SEGGER_SYSVIEW_Start();
+// Start recording to catch system initialization.
+#endif
 }
 
 /*************************** End of file ****************************/
