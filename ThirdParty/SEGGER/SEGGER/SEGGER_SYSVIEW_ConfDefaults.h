@@ -391,7 +391,7 @@ extern "C" {
 *    such as in embOS configuration to enable Cortex-M cycle counter.
 */
 #ifndef   SEGGER_SYSVIEW_USE_INTERNAL_RECORDER
-  #define SEGGER_SYSVIEW_USE_INTERNAL_RECORDER    0
+  #define SEGGER_SYSVIEW_USE_INTERNAL_RECORDER    1
 #endif
 
 /*********************************************************************
@@ -422,7 +422,7 @@ extern "C" {
 *    such as in embOS configuration.
 */
 #ifndef   SEGGER_SYSVIEW_START_ON_INIT
-  #define SEGGER_SYSVIEW_START_ON_INIT            0
+  #define SEGGER_SYSVIEW_START_ON_INIT            1
 #endif
 
 /*********************************************************************
