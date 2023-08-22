@@ -51,7 +51,7 @@
 #define configUSE_IDLE_HOOK				0
 #define configUSE_TICK_HOOK				0
 #define configCPU_CLOCK_HZ				( SystemCoreClock )
-#define configTICK_RATE_HZ				( ( TickType_t ) 500 )
+#define configTICK_RATE_HZ				( ( TickType_t ) 200 )
 #define configMAX_PRIORITIES			( 3 )
 #define configMINIMAL_STACK_SIZE		( ( unsigned short ) 130 )
 #define configTOTAL_HEAP_SIZE			( ( size_t ) ( 6  * 1024 ) )  //1024 = 1KB - 5KB
