@@ -121,8 +121,8 @@ int main(void)
 
   LCD_Config();
 
-//  SEGGER_SYSVIEW_Conf();
-//
+  SEGGER_SYSVIEW_Conf();
+
 //  Task_Generation();
 //  vTaskStartScheduler();
 
