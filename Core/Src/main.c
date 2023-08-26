@@ -123,8 +123,8 @@ int main(void)
 
   SEGGER_SYSVIEW_Conf();
 
-  Task_Generation();
-  vTaskStartScheduler();
+//  Task_Generation();
+//  vTaskStartScheduler();
 
   /* USER CODE END 2 */
 
@@ -136,18 +136,18 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-//	  while(G_Status_F.Setting_Time_Date)
-//	  {
-//		Clear();
-//		Home();
-//		print_string((uint8_t *)text);
-//		delay_us(1000000);
-//		setting_time(&global_counter);
-//	  }
-//
-//	  Print_Time();
-//	  Print_Date();
-//	  delay_us(10000);
+	  while(G_Status_F.Setting_Time_Date)
+	  {
+		Clear();
+		Home();
+		print_string((uint8_t *)text);
+		delay_us(1000000);
+		setting_time(&global_counter);
+	  }
+
+	  Print_Time();
+	  Print_Date();
+	  delay_us(10000);
   }
   /* USER CODE END 3 */
 }
