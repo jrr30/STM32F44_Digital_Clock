@@ -6,6 +6,7 @@
  */
 
 #include "SchM_DigitalClock.h"
+#include "../appl/RTC/RTC.h"
 
 
 #include "FreeRTOS.h"
@@ -75,8 +76,7 @@ void Task_20ms(void * parameters)
 
 	for(;;)
 	{
-
-
+		RTC_updateTimeDate();
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(20));
 	}
 }
