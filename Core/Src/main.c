@@ -23,9 +23,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "LCD_1602.h"
-#include "Digital_Clock.h"
-#include "RTC.h"
+//#include "Digital_Clock.h"
+//#include "RTC.h"
 #include "BSP_STM32F44E.h"
+#include "../appl/RTC/RTC.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -33,8 +34,6 @@
 
 #include "SchM_DigitalClock.h"
 
-extern void Set_Alarm(RTC_HandleTypeDef * Ghrtc);
-extern void delay_us(uint32_t microseconds);
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +51,6 @@ extern void delay_us(uint32_t microseconds);
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim5;
 
@@ -60,6 +58,7 @@ UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
 
+extern RTC_HandleTypeDef hrtc;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -123,8 +122,8 @@ int main(void)
 
   SEGGER_SYSVIEW_Conf();
 
-//  Task_Generation();
-//  vTaskStartScheduler();
+  Task_Generation();
+  vTaskStartScheduler();
 
   /* USER CODE END 2 */
 
@@ -136,18 +135,6 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  while(G_Status_F.Setting_Time_Date)
-	  {
-		Clear();
-		Home();
-		print_string((uint8_t *)text);
-		delay_us(1000000);
-		setting_time(&global_counter);
-	  }
-
-	  Print_Time();
-	  Print_Date();
-	  delay_us(10000);
   }
   /* USER CODE END 3 */
 }
@@ -533,7 +520,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
-	Alarm_sound();
+//	Alarm_sound();
 }
 
 
