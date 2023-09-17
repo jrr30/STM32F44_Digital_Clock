@@ -22,11 +22,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "LCD_1602.h"
 //#include "Digital_Clock.h"
 //#include "RTC.h"
 #include "BSP_STM32F44E.h"
 #include "../appl/RTC/RTC.h"
+#include "../appl/LCD/LCD16.h"
 
 #include "FreeRTOS.h"
 #include "task.h"

@@ -1,13 +1,14 @@
 /*
- * LCD_1602.h
+ * LCD16.h
  *
- *  Created on: Oct 11, 2020
+ *  Created on: Sep 8, 2023
  *      Author: Jesus
  */
 
+#ifndef APPL_LCD_LCD16_H_
+#define APPL_LCD_LCD16_H_
 
-#ifndef THIRD_PARTY_LCD_1602__INC_LCD_1602_H_
-#define THIRD_PARTY_LCD_1602__INC_LCD_1602_H_
+#include <stdint.h>
 
 extern void delay_us(uint32_t microseconds);
 
@@ -93,10 +94,7 @@ typedef enum
 	Row_2
 } Row_lcd;
 
-/*
- *  APIs to interface with LCD Liquid Crystal (1602a)
- */
-void Write_Command(uint8_t com);
+/*Public functions-----------------------------------*/
 void Write_Data(uint8_t data);
 void Set_Cursor(uint8_t row, uint8_t column);
 void LCD_Config(void);
@@ -105,11 +103,4 @@ void Home(void);
 void print_string(uint8_t * lcd_str);
 
 
-#endif /* THIRD_PARTY_LCD_1602__INC_LCD_1602_H_ */
-
-/*
- * Data Log
- *
- * User.....................Date.............Brief description..........................................
- * Jesus Rodriguez          10/17/2020       Including functions Clear and Home.
- */
+#endif /* APPL_LCD_LCD16_H_ */

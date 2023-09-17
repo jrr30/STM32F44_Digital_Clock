@@ -7,6 +7,7 @@
 
 #include "SchM_DigitalClock.h"
 #include "../appl/RTC/RTC.h"
+#include "../appl/LCD/LCD16.h"
 
 
 #include "FreeRTOS.h"
@@ -17,6 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+uint8_t localtest[3] = {0};
 
 TaskHandle_t Task_5ms_Handler = NULL;
 TaskHandle_t Task_20ms_Handler = NULL;
@@ -77,6 +79,7 @@ void Task_20ms(void * parameters)
 	for(;;)
 	{
 		RTC_updateTimeDate();
+		ReadTime(localtest);
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(20));
 	}
 }
@@ -94,8 +97,20 @@ void Task_100ms(void * parameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
+//	uint8_t counter = 0;
+//	uint8_t counter2 = 0;
 	for(;;)
 	{
+//		counter2 ++;
+//		if(counter2 == 20)
+//		{
+//			counter++;
+//			uint8_t Buffer_time[2];
+//			sprintf((char *)Buffer_time, "%02d", counter);
+//			Set_Cursor(Row_1, Column_9);
+//			print_string(Buffer_time);
+//			counter2 = 0;
+//		}
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(100));
 	}
 }

@@ -55,7 +55,6 @@ void RTC_updateTimeDate(void)
 
 void ReadDate(uint8_t * Ptrdatebuffer)
 {
-	uint8_t localtime[MAX_TIME_BUFFER] = {0};
 	memcpy(Ptrdatebuffer, DateBuffer, MAX_DATE_BUFFER);
 }
 

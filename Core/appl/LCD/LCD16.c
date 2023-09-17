@@ -1,14 +1,16 @@
 /*
- * LCD_1602.c
+ * LCD16.c
  *
- *  Created on: Oct 11, 2020
+ *  Created on: Sep 8, 2023
  *      Author: Jesus
  */
 
-#include <stdint.h>
-#include "stm32f4xx_hal.h"
-#include "LCD_1602.h"
 
+#include "../appl/LCD/LCD16.h"
+#include "stm32f4xx_hal.h"
+
+static void Write_Command(uint8_t com);
+static void Enable_Pulse(void);
 
 static void Enable_Pulse(void)
 {
@@ -80,7 +82,7 @@ static void Write_Data_Command_GPIO(uint8_t command, uint8_t rs)
   *           @arg command: this instruction can be taken from the macros "Set of commands to operate the LCD"
   * @retval None
   */
-void Write_Command(uint8_t com)
+static void Write_Command(uint8_t com)
 {
 	uint8_t command_lcd = COMMAND;
 	Write_Data_Command_GPIO(((MASK_HIGH&com)>>4), command_lcd);
@@ -203,10 +205,3 @@ void Home(void)
 	Write_Command(CURSOR_RETURN);
 	delay_us(2000);
 }
-/*
- * Data Log
- *
- * User.....................Date.............Brief description..........................................
- * Jesus Rodriguez          10/17/20         Edit Write_Data_Command_GPIO function. Funtions Clear and Home were added up as well.
- *                                           Creating documentation for each funtion.
- */
