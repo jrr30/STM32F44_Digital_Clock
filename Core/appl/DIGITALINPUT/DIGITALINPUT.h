@@ -16,8 +16,8 @@
 
 typedef enum input_status
 {
-	Input_off,
-	Input_on,
+	Input_low,
+	Input_high,
 
 	Input_max,
 }Input_Status;
@@ -26,7 +26,7 @@ typedef enum input_source
 {
 	Increment,
 	Decrement,
-	Time,
+	Set,
 	Alarm,
 
 	Source_max,
@@ -36,6 +36,7 @@ typedef enum input_source
 
 /*Public functions-----------------------------------*/
 
+void Io_read(void);
 Input_Status Io_Read(Input_Source InputSource);
 
 #endif /* APPL_DIGITALINPUT_DIGITALINPUT_H_ */
