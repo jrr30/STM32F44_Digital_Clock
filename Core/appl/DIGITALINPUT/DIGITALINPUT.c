@@ -15,6 +15,11 @@
 #define DEBOUNCED 0x03u
 #define RESET     0x00u
 
+#define FALSE     0x00u
+#define TRUE      0x01u
+
+#define OFFSATE   0x01u
+
 /*User typedef------------------------------------------*/
 
 typedef struct Button_Descriptor
@@ -24,11 +29,22 @@ typedef struct Button_Descriptor
 
 }Button_Container;
 
+typedef enum input_source_private
+{
+	Increment_private = 1,
+	Decrement_private,
+	Set_private,
+	Alarm_private,
+
+	Source_max_private,
+}Input_Source_Private;
+
 Button_Container Inputs_Private[Source_max];
 uint8_t Input_Bouncer[Source_max] = {0x00u};
 
 /*Private variables definition--------------------------*/
-static uint8_t last_index_u8   = Source_max;
+static uint8_t last_known_u8   = (uint8_t)(Increment_private | Decrement_private | Set_private | Alarm_private);
+static uint8_t last_index_u8   =  0x00u;;
 
 /*Private functions prototype--------------------------*/
 
@@ -40,42 +56,41 @@ static uint8_t last_index_u8   = Source_max;
 
 void Io_read(void)
 {
-	uint8_t source_index_u8        = 0x00u;
+//	uint8_t source_index_u8 = 0x00u;
 
-	if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,SET_BUTTON_Pin))
+	if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,SET_BUTTON_Pin) && (Set_private == (last_known_u8 & Set_private)))
 	{
-		Input_Bouncer[Set] +=1;
-		last_index_u8 = Set;
+		Input_Bouncer[Set] +=0x01u;
+		last_known_u8 = Set_private;
 	}
-	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,SET_ALARM_BUTTON_Pin))
+	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,SET_ALARM_BUTTON_Pin) && (Alarm_private == (last_known_u8 & Alarm_private)))
 	{
-		Input_Bouncer[Alarm] +=1;
-		last_index_u8 = Alarm;
+		Input_Bouncer[Alarm] +=0x01u;
+		last_known_u8 = Alarm_private;
 	}
-	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,INCREMENT_BUTTON_Pin))
+	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,INCREMENT_BUTTON_Pin) && (Increment_private == (last_known_u8 & Increment_private)))
 	{
-		Input_Bouncer[Increment] +=1;
-		last_index_u8 = Increment;
+		Input_Bouncer[Increment] +=0x01u;
+		last_known_u8 = Increment_private;
 	}
-	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,DECREMENT_BUTTON_Pin))
+	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,DECREMENT_BUTTON_Pin) && (Decrement_private == (last_known_u8 & Decrement_private)))
 	{
-		Input_Bouncer[Decrement] +=1;
-		last_index_u8 = Decrement;
+		Input_Bouncer[Decrement] +=0x01u;
+		last_known_u8 = Decrement_private;
 	}
 	else
 	{
 		Inputs_Private[last_index_u8].Digital_Input_State = Input_low;
 		Input_Bouncer[last_index_u8] = RESET;
-		last_index_u8 = Source_max;
+		last_known_u8 = (uint8_t)(Increment_private | Decrement_private | Set_private | Alarm_private);
 	}
 
-	for(source_index_u8 = Increment; source_index_u8 <= Source_max; source_index_u8++)
+	if(DEBOUNCED == Input_Bouncer[last_known_u8 - OFFSATE])
 	{
-		if(DEBOUNCED == Input_Bouncer[source_index_u8])
-		{
-			Inputs_Private[source_index_u8].Digital_Input_State = Input_high;
-		}
+		Inputs_Private[last_known_u8 - OFFSATE].Digital_Input_State = Input_high;
+		last_index_u8 = last_known_u8 - OFFSATE;
 	}
+
 }
 
 Input_Status Io_Read(Input_Source InputSource)
