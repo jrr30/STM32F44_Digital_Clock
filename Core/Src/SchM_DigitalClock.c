@@ -8,6 +8,7 @@
 #include "SchM_DigitalClock.h"
 #include "../appl/RTC/RTC.h"
 #include "../appl/LCD/LCD16.h"
+#include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 
 
 #include "FreeRTOS.h"
@@ -57,7 +58,8 @@ void Task_5ms(void * parameters)
 	xLastWakeTime = xTaskGetTickCount();
 	for(;;)
 	{
-//		taskYIELD();
+
+		Io_Thread();
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(5));
 	}
 }

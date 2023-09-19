@@ -27,6 +27,7 @@
 #include "BSP_STM32F44E.h"
 #include "../appl/RTC/RTC.h"
 #include "../appl/LCD/LCD16.h"
+#include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -119,6 +120,7 @@ int main(void)
   HAL_TIM_Base_Start(&htim5);
 
   LCD_Config();
+  Init_digital_input();
 
   SEGGER_SYSVIEW_Conf();
 
@@ -368,9 +370,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, RS_Pin|ENABLE_Pin|RW_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : SET_TIME_DATE_Pin INCREMENT_BUTTON_Pin SET_ALARM_Pin DECREMENT_BUTTON_Pin */
-  GPIO_InitStruct.Pin = SET_TIME_DATE_Pin|INCREMENT_BUTTON_Pin|SET_ALARM_Pin|DECREMENT_BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  /*Configure GPIO pins : SET_BUTTON_Pin DECREMENT_BUTTON_Pin SET_ALARM_BUTTON_Pin INCREMENT_BUTTON_Pin */
+  GPIO_InitStruct.Pin = SET_BUTTON_Pin|DECREMENT_BUTTON_Pin|SET_ALARM_BUTTON_Pin|INCREMENT_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
@@ -395,127 +397,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if( GPIO_Pin == SET_TIME_DATE_Pin)
-	{
-		if(HAL_GPIO_ReadPin(GPIOC, SET_TIME_DATE_Pin))
-		{
-			// Start timer. Keep on mind that this timer is set in Run speed of the CLK.
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-
-		if(!HAL_GPIO_ReadPin(GPIOC, SET_TIME_DATE_Pin))
-		{
-			//Get timer's value when falling edge
-			G_Variables.counter_us_debound =  __HAL_TIM_GET_COUNTER(&htim5);
-		}
-
-		// This verifies that user pressed the button and it was not a debounce
-		if(G_Variables.counter_us_debound > TRESSHOLD_SWITCH_DEBOUNCE)
-		{
-			G_Status_F.Setting_Time_Date = 0x01;
-			G_Status_F.shifting_parameter = G_Status_F.shifting_parameter << 1;
-
-			if(G_Status_F.shifting_parameter > 0x80)
-			{
-				G_Status_F.Setting_Time_Date = ZERO_VALUE;
-				G_Status_F.shifting_parameter = 0x01;
-			}
-			Push_Beep_Button();
-			G_Variables.counter_us_debound = ZERO_VALUE;
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-
-	}
-	else if(GPIO_Pin == DECREMENT_BUTTON_Pin)
-	{
-		if(HAL_GPIO_ReadPin(GPIOC, DECREMENT_BUTTON_Pin))
-		{
-			// Start timer. Keep on mind that this timer is set in Run speed of the CLK.
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-
-		if(!HAL_GPIO_ReadPin(GPIOC, DECREMENT_BUTTON_Pin))
-		{
-			//Get timer's value when falling edge
-			G_Variables.counter_us_debound =  __HAL_TIM_GET_COUNTER(&htim5);
-		}
-
-		// This verifies that user pressed the button and it was not a debounce
-		if(G_Variables.counter_us_debound > TRESSHOLD_SWITCH_DEBOUNCE)
-		{
-			global_counter--;
-			Push_Beep_Button();
-			G_Variables.counter_us_debound = ZERO_VALUE;
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-
-	}
-	else if(GPIO_Pin == INCREMENT_BUTTON_Pin)
-	{
-		if(HAL_GPIO_ReadPin(GPIOC, INCREMENT_BUTTON_Pin))
-		{
-			// Start timer. Keep on mind that this timer is set in Run speed of the CLK.
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-
-		if(!HAL_GPIO_ReadPin(GPIOC, INCREMENT_BUTTON_Pin))
-		{
-			//Get timer's value when falling edge
-			G_Variables.counter_us_debound =  __HAL_TIM_GET_COUNTER(&htim5);
-		}
-
-		// This verifies that user pressed the button and it was not a debounce
-		if(G_Variables.counter_us_debound > TRESSHOLD_SWITCH_DEBOUNCE)
-		{
-			global_counter++;
-			Push_Beep_Button();
-			G_Variables.counter_us_debound = ZERO_VALUE;
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-	}
-	else if(GPIO_Pin == SET_ALARM_Pin)
-	{
-		if(HAL_GPIO_ReadPin(GPIOC, INCREMENT_BUTTON_Pin))
-		{
-			// Start timer. Keep on mind that this timer is set in Run speed of the CLK.
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-
-		if(!HAL_GPIO_ReadPin(GPIOC, INCREMENT_BUTTON_Pin))
-		{
-			//Get timer's value when falling edge
-			G_Variables.counter_us_debound =  __HAL_TIM_GET_COUNTER(&htim5);
-		}
-
-		// This verifies that user pressed the button and it was not a debounce
-		if(G_Variables.counter_us_debound > TRESSHOLD_SWITCH_DEBOUNCE)
-		{
-			Push_Beep_Button();
-			G_Variables.counter_us_debound = ZERO_VALUE;
-			__HAL_TIM_SET_COUNTER(&htim5, ZERO_VALUE);
-		}
-	}
-	else
-	{
-		__NOP();
-	}
-}
 
 
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
