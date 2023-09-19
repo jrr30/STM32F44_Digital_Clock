@@ -27,6 +27,7 @@
 #include "BSP_STM32F44E.h"
 #include "../appl/RTC/RTC.h"
 #include "../appl/LCD/LCD16.h"
+#include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -119,6 +120,7 @@ int main(void)
   HAL_TIM_Base_Start(&htim5);
 
   LCD_Config();
+  Init_digital_input();
 
   SEGGER_SYSVIEW_Conf();
 

@@ -37,6 +37,7 @@ typedef enum input_source
 /*Public functions-----------------------------------*/
 
 void Io_read(void);
+void Init_digital_input(void);
 Input_Status Io_Read(Input_Source InputSource);
 
 #endif /* APPL_DIGITALINPUT_DIGITALINPUT_H_ */

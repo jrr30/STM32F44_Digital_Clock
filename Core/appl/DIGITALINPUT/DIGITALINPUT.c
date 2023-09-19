@@ -44,7 +44,7 @@ uint8_t Input_Bouncer[Source_max] = {0x00u};
 
 /*Private variables definition--------------------------*/
 static uint8_t last_known_u8   = (uint8_t)(Increment_private | Decrement_private | Set_private | Alarm_private);
-static uint8_t last_index_u8   =  0x00u;;
+static uint8_t last_index_u8   =  0x00u;
 
 /*Private functions prototype--------------------------*/
 
@@ -96,6 +96,18 @@ void Io_read(void)
 Input_Status Io_Read(Input_Source InputSource)
 {
 	return Inputs_Private[InputSource].Digital_Input_State;
+}
+
+void Init_digital_input(void)
+{
+	uint8_t index = 0x00;
+
+	for(index = Increment; index < Source_max; index++)
+	{
+		Input_Bouncer[Increment] = 0x00;
+		Inputs_Private[index].Digital_Input_Source = index;
+		Inputs_Private[index].Digital_Input_State = Input_low;
+	}
 }
 
 #endif /* APPL_DIGITALINPUT_DIGITALINPUT_C_ */
