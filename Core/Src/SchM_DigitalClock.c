@@ -59,7 +59,7 @@ void Task_5ms(void * parameters)
 	for(;;)
 	{
 
-		Io_read();
+		Io_Thread();
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(5));
 	}
 }
