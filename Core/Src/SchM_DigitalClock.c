@@ -9,6 +9,7 @@
 #include "../appl/RTC/RTC.h"
 #include "../appl/LCD/LCD16.h"
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
+#include "../appl/INPUTIF/INPUTIF.h"
 
 
 #include "FreeRTOS.h"
@@ -27,6 +28,9 @@ TaskHandle_t Task_100ms_Handler = NULL;
 
 QueueHandle_t Time_Queue_Handler = NULL;
 QueueHandle_t User_Input_Time_Date_Queue_Handler = NULL;
+
+Input_Source source_e = Increment;
+uint16_t button_req_status_u16[Source_max] = {0};
 
 static void Task_20ms(void * parameters);
 static void Task_5ms(void * parameters);
@@ -113,6 +117,8 @@ void Task_100ms(void * parameters)
 //			print_string(Buffer_time);
 //			counter2 = 0;
 //		}
+		INTFEF_Thread();
+		button_req_status_u16[source_e] = INTFEF_Get_Button_Req(source_e);
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(100));
 	}
 }
