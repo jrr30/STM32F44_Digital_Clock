@@ -28,7 +28,7 @@
 #include "../appl/RTC/RTC.h"
 #include "../appl/LCD/LCD16.h"
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
-#include "../appl/INPUTIF/INPUTIF.h"
+#include "../appl/APPINTF/APPINTF.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -122,7 +122,7 @@ int main(void)
 
   LCD_Config();
   Init_digital_input();
-  INTFEF_Init();
+  APPIFEF_Init();
 
   SEGGER_SYSVIEW_Conf();
 
