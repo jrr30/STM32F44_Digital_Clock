@@ -5,8 +5,8 @@
  *      Author: Jesus
  */
 
-#ifndef APPL_INPUTIF_INPUTIF_H_
-#define APPL_INPUTIF_INPUTIF_H_
+#ifndef APPL_APPINTF_APPINTF_H_
+#define APPL_APPINTF_APPINTF_H_
 
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 
@@ -57,8 +57,16 @@ typedef enum Button_Decrement_Requests_TAG
 
 /*Public functions--------------------------------------*/
 
-void INTFEF_Thread(void);
-void INTFEF_Init(void);
-uint16_t INTFEF_Get_Button_Req(Input_Source source_e);
+void APPIFEF_Thread(void);
+void APPIFEF_Init(void);
+uint16_t APPIFEF_Get_Button_Req(Input_Source source_e);
+
+void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8);
+void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8);
+
+void APPIFEF_Get_Time(uint8_t * time_buffer_pu8);
+void APPIFEF_Get_Date(uint8_t * date_buffer_pu8);
+
+
 
 #endif /* APPL_INPUTIF_INPUTIF_H_ */

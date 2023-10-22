@@ -9,7 +9,7 @@
 #include "../appl/RTC/RTC.h"
 #include "../appl/LCD/LCD16.h"
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
-#include "../appl/INPUTIF/INPUTIF.h"
+#include "../appl/APPINTF/APPINTF.h"
 
 
 #include "FreeRTOS.h"
@@ -117,8 +117,8 @@ void Task_100ms(void * parameters)
 //			print_string(Buffer_time);
 //			counter2 = 0;
 //		}
-		INTFEF_Thread();
-		button_req_status_u16[source_e] = INTFEF_Get_Button_Req(source_e);
+	        APPIFEF_Thread();
+		button_req_status_u16[source_e] = APPIFEF_Get_Button_Req(source_e);
 		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(100));
 	}
 }

@@ -6,20 +6,32 @@
  */
 
 
-#include "../appl/INPUTIF/INPUTIF.h"
+#include "../appl/APPINTF/APPINTF.h"
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 
 #include <string.h>
+#include <stdio.h>
 
 /*Macros declaration------------------------------------*/
-#define INTF_VALUE 0x00u
-#define INTF_SHIFT_VALUE 0x01u
+#define INTF_VALUE          (0x00u)
+#define INTF_SHIFT_VALUE    (0x01u)
+#define APPIF_MAX_LCD_DIGIT   (16u)
+
+#define APPIF_HRS (0x00u)
+#define APPIF_MIN (0x01u)
+#define APPIF_SEC (0x02u)
+
+#define APPIF_YEAR   (0x00u)
+#define APPIF_MOUNTH (0x01u)
+#define APPIF_DAY    (0x02u)
 /*User typedef------------------------------------------*/
 
 
 /*Private variables definition--------------------------*/
 
 static uint16_t button_req_status_u16[Source_max];
+static uint8_t appif_time_buffer_u8[APPIF_MAX_LCD_DIGIT];
+static uint8_t appif_date_buffer_u8[APPIF_MAX_LCD_DIGIT];
 
 
 static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source source_e);
@@ -69,7 +81,7 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 
 /*Public functions--------------------------------------*/
 
-void INTFEF_Thread(void)
+void APPIFEF_Thread(void)
 {
 	uint8_t button_index_u8 = INTF_VALUE;
 	Input_Status button_status = Input_low;
@@ -82,7 +94,7 @@ void INTFEF_Thread(void)
 
 }
 
-void INTFEF_Init(void)
+void APPIFEF_Init(void)
 {
 	button_req_status_u16[Set]         = Setting_Idle_Requested;
 	button_req_status_u16[Alarm]       = Alarm_idle_Requested;
@@ -90,9 +102,27 @@ void INTFEF_Init(void)
 	button_req_status_u16[Decrement]   = Decrementing_Idle_Requested;
 }
 
-uint16_t INTFEF_Get_Button_Req(Input_Source source_e)
+uint16_t APPIFEF_Get_Button_Req(Input_Source source_e)
 {
 	return button_req_status_u16[source_e];
 }
 
+void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8)
+{
+  sprintf((char *)appif_time_buffer_u8, "%02d:%02d:%02d", time_buffer_pu8[APPIF_HRS], time_buffer_pu8[APPIF_MIN], time_buffer_pu8[APPIF_SEC]);
+
+}
+void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8)
+{
+  sprintf((char *)appif_date_buffer_u8, "%02d/%02d/%4d", date_buffer_pu8[APPIF_DAY], date_buffer_pu8[APPIF_MOUNTH], date_buffer_pu8[APPIF_YEAR]);
+}
+
+void APPIFEF_Get_Time(uint8_t * time_buffer_pu8)
+{
+  time_buffer_pu8 = appif_time_buffer_u8;
+}
+void APPIFEF_Get_Date(uint8_t * date_buffer_pu8)
+{
+  date_buffer_pu8 = appif_date_buffer_u8;
+}
 
