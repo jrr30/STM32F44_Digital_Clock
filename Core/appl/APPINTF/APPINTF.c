@@ -119,7 +119,7 @@ void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8)
 
 void APPIFEF_Get_Time(uint8_t * time_buffer_pu8)
 {
-  time_buffer_pu8 = appif_time_buffer_u8;
+  memcpy(time_buffer_pu8, appif_time_buffer_u8, sizeof(appif_time_buffer_u8));
 }
 void APPIFEF_Get_Date(uint8_t * date_buffer_pu8)
 {

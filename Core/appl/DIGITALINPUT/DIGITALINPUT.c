@@ -12,7 +12,7 @@
 #include <main.h>
 
 /*Macros declaration------------------------------------*/
-#define DEBOUNCED 0x03u
+#define DEBOUNCED 0x04u
 #define RESET     0x00u
 
 #define FALSE     0x00u

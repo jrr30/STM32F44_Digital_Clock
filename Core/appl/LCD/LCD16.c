@@ -7,6 +7,8 @@
 
 
 #include "../appl/LCD/LCD16.h"
+#include "../appl/APPINTF/APPINTF.h"
+
 #include "stm32f4xx_hal.h"
 
 static void Write_Command(uint8_t com);
@@ -204,4 +206,13 @@ void Home(void)
 {
 	Write_Command(CURSOR_RETURN);
 	delay_us(2000);
+}
+
+void LCDEF_Send_TimeRow(void)
+{
+  uint8_t local_buffer_time[16] = {0x00u};
+
+  APPIFEF_Get_Time(local_buffer_time);
+  Set_Cursor(Row_1, Column_4);
+  print_string(local_buffer_time);
 }

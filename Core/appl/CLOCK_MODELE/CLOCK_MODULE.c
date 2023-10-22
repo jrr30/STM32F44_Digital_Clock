@@ -17,10 +17,12 @@
 /******************************************************************************
 * Includes
 *******************************************************************************/
+
+#include "../appl/CLOCK_MODELE/CLOCK_MODULE.h"
 #include "../appl/RTC/RTC.h"
 #include "../appl/LCD/LCD16.h"
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
-#include "../appl/INPUTIF/INPUTIF.h"
+#include "../appl/APPINTF/APPINTF.h"
 
 /******************************************************************************
 * Module Preprocessor Constants
@@ -33,7 +35,7 @@
 /******************************************************************************
 * Module Preprocessor Macros
 *******************************************************************************/
-
+#define CLK_MAX_TIME_BUFFER 0x03u
 /******************************************************************************
 * Module Typedefs
 *******************************************************************************/
@@ -49,6 +51,8 @@ typedef enum main_clock_TAG
 * Module Variable Definitions
 *******************************************************************************/
 E_main_clock_states main_clock_state_e = init;
+
+static uint8_t clk_time_buffer[CLK_MAX_TIME_BUFFER];
 /******************************************************************************
 * Function Prototypes
 *******************************************************************************/
@@ -78,11 +82,14 @@ void FSMEF_Clock_Thread(void)
       break;
     case print:
 
-      if(Setting_Enter_Requested == INTFEF_Get_Button_Req(Set))
+      ReadTime(clk_time_buffer);
+      APPIFEF_Send_Time_Display(clk_time_buffer);
+
+      if(Setting_Enter_Requested == APPIFEF_Get_Button_Req(Set))
 	{
 	  main_clock_state_e = set_time;
 	}
-      else if(Alarm_max_Requested == INTFEF_Get_Button_Req(Alarm))
+      else if(Alarm_max_Requested == APPIFEF_Get_Button_Req(Alarm))
 	{
 	  main_clock_state_e = set_time;
 	}
@@ -90,14 +97,14 @@ void FSMEF_Clock_Thread(void)
       break;
     case set_time:
 
-      if(Setting_Exit_Requested == INTFEF_Get_Button_Req(Set))
+      if(Setting_Exit_Requested == APPIFEF_Get_Button_Req(Set))
 	{
 	  main_clock_state_e = print;
 	}
       break;
     case set_alaram:
 
-      if(Alarm_Exit_Requested == INTFEF_Get_Button_Req(Alarm))
+      if(Alarm_Exit_Requested == APPIFEF_Get_Button_Req(Alarm))
 	{
 	  main_clock_state_e = print;
 	}

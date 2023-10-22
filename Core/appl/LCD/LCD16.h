@@ -101,6 +101,8 @@ void LCD_Config(void);
 void Clear(void);
 void Home(void);
 void print_string(uint8_t * lcd_str);
+void LCDEF_Send_TimeRow(void);
+
 
 
 #endif /* APPL_LCD_LCD16_H_ */
