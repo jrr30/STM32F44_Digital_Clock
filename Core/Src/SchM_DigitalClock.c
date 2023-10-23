@@ -21,27 +21,27 @@
 #include <string.h>
 #include <stdlib.h>
 
-TaskHandle_t Task_5ms_Handler = NULL;
-TaskHandle_t Task_20ms_Handler = NULL;
-TaskHandle_t Task_40ms_Handler = NULL;
-TaskHandle_t Task_100ms_Handler = NULL;
+TaskHandle_t Task_50ms_Handler = NULL;
+TaskHandle_t Task_200ms_Handler = NULL;
+TaskHandle_t Task_400ms_Handler = NULL;
+TaskHandle_t Task_500ms_Handler = NULL;
 
 QueueHandle_t Time_Queue_Handler = NULL;
 QueueHandle_t User_Input_Time_Date_Queue_Handler = NULL;
 
-static void Task_5ms(void * parameters);
-static void Task_20ms(void * parameters);
-static void Task_40ms(void * parameters);
-static void Task_100ms(void * parameters);
+static void Task_50ms(void * parameters);
+static void Task_200ms(void * parameters);
+static void Task_400ms(void * parameters);
+static void Task_500ms(void * parameters);
 
 
 void Task_Generation(void)
 {
 
-	xTaskCreate(Task_5ms, "5ms", 100, NULL, 1, &Task_5ms_Handler);
-	xTaskCreate(Task_20ms, "20ms", 100, NULL, 1, &Task_20ms_Handler);
-	xTaskCreate(Task_40ms, "40ms", 100, NULL, 3, &Task_40ms_Handler);
-	xTaskCreate(Task_100ms, "100ms", 100, NULL, 4, &Task_100ms_Handler);
+	xTaskCreate(Task_50ms, "50ms", 100, NULL, 1, &Task_50ms_Handler);
+	xTaskCreate(Task_200ms, "200ms", 100, NULL, 1, &Task_200ms_Handler);
+	xTaskCreate(Task_400ms, "400ms", 100, NULL, 2, &Task_400ms_Handler);
+	xTaskCreate(Task_500ms, "500ms", 100, NULL, 3, &Task_500ms_Handler);
 
 }
 
@@ -55,7 +55,7 @@ void Task_Generation(void)
   * @retval None
   */
 
-void Task_5ms(void * parameters)
+void Task_50ms(void * parameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
@@ -76,7 +76,7 @@ void Task_5ms(void * parameters)
   * @retval None
   */
 
-void Task_20ms(void * parameters)
+void Task_200ms(void * parameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
@@ -98,7 +98,7 @@ void Task_20ms(void * parameters)
   * @retval None
   */
 
-void Task_40ms(void * parameters)
+void Task_400ms(void * parameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
@@ -119,19 +119,18 @@ void Task_40ms(void * parameters)
   * @retval None
   */
 
-void Task_100ms(void * parameters)
+void Task_500ms(void * parameters)
 {
   TickType_t xLastWakeTime;
   xLastWakeTime = xTaskGetTickCount();
-  uint8_t row_turn = 0x00u;
+  uint8_t row_turn = 0x01u;
   for(;;)
     {
-      row_turn++;
-      if(row_turn == 4)
+      if(row_turn)
 	{
-	  row_turn = 0x00;
 	  LCDEF_Send_TimeRow();
 	}
+      row_turn ^= 0x01;
       vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(100));
     }
 }
