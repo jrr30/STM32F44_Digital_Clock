@@ -12,6 +12,10 @@
 
 extern void delay_us(uint32_t microseconds);
 
+#define ROW_UP   1u
+#define ROW_DOWN 2u
+
+
 /*
  * Macros for PINs in order to control RS, Enable, RW interfaced with specific port
  */
@@ -101,8 +105,8 @@ void LCD_Config(void);
 void Clear(void);
 void Home(void);
 void print_string(uint8_t * lcd_str);
-void LCDEF_Send_TimeRow(void);
-
+void LCDEF_frist_Row(void);
+void LCDEF_Second_Row(void);
 
 
 #endif /* APPL_LCD_LCD16_H_ */

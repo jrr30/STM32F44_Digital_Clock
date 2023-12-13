@@ -208,11 +208,21 @@ void Home(void)
 	delay_us(2000);
 }
 
-void LCDEF_Send_TimeRow(void)
+void LCDEF_frist_Row(void)
 {
-  uint8_t local_buffer_time[16] = {0x00u};
+  S_Texts_LCD_Status local_buffer_firts_row;
 
-  APPIFEF_Get_Time(local_buffer_time);
-  Set_Cursor(Row_1, Column_4);
-  print_string(local_buffer_time);
+  APPIFEF_Get_Time(&local_buffer_firts_row);
+  Set_Cursor(local_buffer_firts_row.row_position, local_buffer_firts_row.colum_position);
+  print_string(local_buffer_firts_row.appif_out_buffer_u8);
+}
+
+
+void LCDEF_Second_Row(void)
+{
+  S_Texts_LCD_Status local_buffer_second_row;
+
+  APPIFEF_Get_Date(&local_buffer_second_row);
+  Set_Cursor(local_buffer_second_row.row_position, local_buffer_second_row.colum_position);
+  print_string(local_buffer_second_row.appif_out_buffer_u8);
 }

@@ -9,9 +9,10 @@
 #define APPL_APPINTF_APPINTF_H_
 
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
+#include "../appl/LCD/LCD16.h"
 
 /*Macros declaration------------------------------------*/
-
+#define APPIF_MAX_LCD_DIGIT   (17u)
 /*User typedef------------------------------------------*/
 
 typedef enum Button_Set_Requests_TAG
@@ -48,25 +49,48 @@ typedef enum Button_Increment_Requests_TAG
 
 typedef enum Button_Decrement_Requests_TAG
 {
-
 	Decrementing_Idle_Requested          = 0x0001,
 	Decrementing_Requested_Requested     = 0x0002,
 
 	Decrementing_max_status_Requested    = 0x0004,
 }E_Button_Decrement_Requests;
 
+
+typedef struct Print_Texts_LCD_TAG
+{
+  Row_lcd row_position;
+  Column_lcd colum_position;
+  uint8_t * texts_lcd;
+}S_Print_Texts_LCD;
+
+
+typedef struct Texts_LCD_Status_TAG
+{
+
+  Row_lcd row_position;
+  Column_lcd colum_position;
+  uint8_t appif_out_buffer_u8[APPIF_MAX_LCD_DIGIT];
+
+}S_Texts_LCD_Status;
+
 /*Public functions--------------------------------------*/
 
 void APPIFEF_Thread(void);
 void APPIFEF_Init(void);
+
 uint16_t APPIFEF_Get_Button_Req(Input_Source source_e);
+void APPIFEF_Clear_Button_Req(Input_Source source_e);
 
 void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8);
 void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8);
 
-void APPIFEF_Get_Time(uint8_t * time_buffer_pu8);
-void APPIFEF_Get_Date(uint8_t * date_buffer_pu8);
+void APPIFEF_Get_Time(S_Texts_LCD_Status * outbuffer_pS);
+void APPIFEF_Get_Date(S_Texts_LCD_Status * outbuffer_pS);
 
+void APPIFEF_Send_String_Settings(void);
+void APPIFEF_Send_Setting(uint8_t  date_buffer_pu8, uint8_t index_string_u8);
+
+void APPIFEF_Clear(void);
 
 
 #endif /* APPL_INPUTIF_INPUTIF_H_ */

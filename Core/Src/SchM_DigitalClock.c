@@ -38,10 +38,10 @@ static void Task_500ms(void * parameters);
 void Task_Generation(void)
 {
 
-	xTaskCreate(Task_50ms, "50ms", 100, NULL, 1, &Task_50ms_Handler);
-	xTaskCreate(Task_200ms, "200ms", 100, NULL, 1, &Task_200ms_Handler);
-	xTaskCreate(Task_400ms, "400ms", 100, NULL, 2, &Task_400ms_Handler);
-	xTaskCreate(Task_500ms, "500ms", 100, NULL, 3, &Task_500ms_Handler);
+	xTaskCreate(Task_50ms,   "50ms", 200, NULL, 1, &Task_50ms_Handler );
+	xTaskCreate(Task_200ms, "200ms", 200, NULL, 1, &Task_200ms_Handler);
+	xTaskCreate(Task_400ms, "400ms", 300, NULL, 2, &Task_400ms_Handler);
+	xTaskCreate(Task_500ms, "500ms", 200, NULL, 3, &Task_500ms_Handler);
 
 }
 
@@ -63,7 +63,7 @@ void Task_50ms(void * parameters)
 	{
 
 		Io_Thread();
-		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(5));
+		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(50));
 	}
 }
 
@@ -85,7 +85,7 @@ void Task_200ms(void * parameters)
 	{
 	    RTC_updateTimeDate();
 	    APPIFEF_Thread();
-	    vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(20));
+	    vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(200));
 	}
 }
 
@@ -106,7 +106,7 @@ void Task_400ms(void * parameters)
 	for(;;)
 	{
 	    FSMEF_Clock_Thread();
-	    vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(40));
+	    vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(400));
 	}
 }
 
@@ -123,15 +123,26 @@ void Task_500ms(void * parameters)
 {
   TickType_t xLastWakeTime;
   xLastWakeTime = xTaskGetTickCount();
-  uint8_t row_turn = 0x01u;
+  uint8_t switch_row = 0x01u;
   for(;;)
     {
-      if(row_turn)
+      if(switch_row == ROW_UP)
 	{
-	  LCDEF_Send_TimeRow();
+	  LCDEF_frist_Row();
+	  switch_row = ROW_DOWN;
 	}
-      row_turn ^= 0x01;
-      vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(100));
+      else if (switch_row == ROW_DOWN)
+	{
+	  LCDEF_Second_Row();
+	  switch_row = ROW_UP;
+	}
+      else
+	{
+	  Set_Cursor(Row_1, Column_1);
+	  print_string((unsigned char *)"Error task send");
+	}
+
+      vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(500));
     }
 }
 
