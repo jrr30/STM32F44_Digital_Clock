@@ -40,7 +40,7 @@ void Task_Generation(void)
 
 	xTaskCreate(Task_50ms,   "50ms", 200, NULL, 1, &Task_50ms_Handler );
 	xTaskCreate(Task_200ms, "200ms", 200, NULL, 1, &Task_200ms_Handler);
-	xTaskCreate(Task_400ms, "400ms", 300, NULL, 2, &Task_400ms_Handler);
+	xTaskCreate(Task_400ms, "400ms", 400, NULL, 2, &Task_400ms_Handler);
 	xTaskCreate(Task_500ms, "500ms", 200, NULL, 3, &Task_500ms_Handler);
 
 }

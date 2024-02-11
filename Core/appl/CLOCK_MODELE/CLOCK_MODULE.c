@@ -42,9 +42,9 @@
 #define CLK_MIN    (0x01u)
 #define CLK_SEC    (0x02u)
 
-#define CLK_YEAR   (0x03u)
-#define CLK_MOUNTH (0x04u)
-#define CLK_DAY    (0x05u)
+#define CLK_YEAR   (0x00u)
+#define CLK_MOUNTH (0x01u)
+#define CLK_DAY    (0x02u)
 
 #define CLK_UNIT_ONE (0x01)
 /******************************************************************************
@@ -77,15 +77,20 @@ typedef enum setting_menu_TAG
 E_main_clock_states main_clock_state_e = init;
 E_setting_menu_states settings_menu_state_e = setting_init;
 uint8_t delay_state = 0x00u;
-uint16_t buton_request_u16 = 0x00;
 
 static uint8_t clk_temp_buffer_time[CLK_MAX_TIME_BUFFER];
 static uint8_t clk_temp_buffer_date[CLK_MAX_DATE_BUFFER];
 /******************************************************************************
 * Function Prototypes
 *******************************************************************************/
-static void FSMLF_Menu_Config(uint16_t buton_rqst);
-static void CLKLF_Set_Hour(void);
+static void FSMLF_Menu_Config(void);
+static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descriptor * button_decrement);
+static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descriptor * button_decrement);
+static void CLKLF_Set_Sec(button_descriptor * button_increment, button_descriptor * button_decrement);
+static void CLKLF_Set_Year(button_descriptor * button_increment, button_descriptor * button_decrement);
+static void CLKLF_Set_Day(button_descriptor * button_increment, button_descriptor * button_decrement);
+static void CLKLF_Set_Month(button_descriptor * button_increment, button_descriptor * button_decrement);
+
 /******************************************************************************
 * Function Definitions
 *******************************************************************************/
@@ -103,6 +108,12 @@ static void CLKLF_Set_Hour(void);
 *******************************************************************************/
 void FSMEF_Clock_Thread(void)
 {
+  button_descriptor set_button;
+  button_descriptor alarm_button;
+
+  APPIFEF_Get_Button_Req(Set, &set_button);
+  APPIFEF_Get_Button_Req(Alarm, &alarm_button);
+
   switch(main_clock_state_e)
   {
     case init:
@@ -121,35 +132,30 @@ void FSMEF_Clock_Thread(void)
       //sending date to Appitf SW component
       APPIFEF_Send_Date_Display(clk_temp_buffer_date);
 
-      if(Setting_Enter_Requested == APPIFEF_Get_Button_Req(Set))
+      if(Setting_Enter_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
 	  main_clock_state_e = set_time;
 	  settings_menu_state_e = setting_init;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
-      else if(Alarm_max_Requested == APPIFEF_Get_Button_Req(Alarm))
+      else if(Alarm_max_Requested == alarm_button.push_buttonuest_u16 && button_pushed == alarm_button.button_status)
 	{
 	  main_clock_state_e = set_time;
+	  APPIFEF_Set_Button_Status(Alarm, button_proccessed);
 	}
 
       break;
     case set_time:
 
-      buton_request_u16 = APPIFEF_Get_Button_Req(Set);
-
-      FSMLF_Menu_Config(buton_request_u16);
-
-      if(Setting_Exit_Requested == buton_request_u16)
-	{
-	  APPIFEF_Clear();
-	  main_clock_state_e = print;
-	}
+      FSMLF_Menu_Config();
 
       break;
     case set_alaram:
 
-      if(Alarm_Exit_Requested == APPIFEF_Get_Button_Req(Alarm))
+      if(Alarm_Exit_Requested == alarm_button.push_buttonuest_u16 && button_pushed == alarm_button.button_status)
 	{
 	  main_clock_state_e = print;
+	  APPIFEF_Set_Button_Status(Alarm, button_proccessed);
 	}
       break;
     default:
@@ -170,8 +176,16 @@ void FSMEF_Clock_Thread(void)
 *
 *
 *******************************************************************************/
-static void FSMLF_Menu_Config(uint16_t buton_rqst)
+static void FSMLF_Menu_Config(void)
 {
+  button_descriptor set_button;
+  button_descriptor increment_button;
+  button_descriptor decrement_button;
+
+  APPIFEF_Get_Button_Req(Set, &set_button);
+  APPIFEF_Get_Button_Req(Increment, &increment_button);
+  APPIFEF_Get_Button_Req(Decrement, &decrement_button);
+
   switch(settings_menu_state_e)
   {
     case setting_init:
@@ -188,94 +202,267 @@ static void FSMLF_Menu_Config(uint16_t buton_rqst)
       break;
     case hour_setting:
 
-      CLKLF_Set_Hour();
-      APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_HRS], 3);
+      CLKLF_Set_Hour(&increment_button, &decrement_button);
 
-      if(Setting_Min_Requested == buton_rqst)
+      if(Setting_Hour_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
 	  settings_menu_state_e = min_setting;
-	  APPIFEF_Clear();
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
     case min_setting:
 
-      APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_MIN], 4);
+      CLKLF_Set_Minute(&increment_button, &decrement_button);
 
-      if(Setting_Sec_Requested == buton_rqst)
+      if(Setting_Min_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
 	  settings_menu_state_e = sec_setting;
-	  APPIFEF_Clear();
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
     case sec_setting:
 
+      CLKLF_Set_Sec(&increment_button, &decrement_button);
 
-      APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_SEC], 5);
-
-      if(Setting_Year_Requested == buton_rqst)
+      if(Setting_Sec_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
 	  settings_menu_state_e = year_setting;
-	  APPIFEF_Clear();
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
 
     case year_setting:
 
-      APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_YEAR], 8);
-
-      if(Setting_Month_Requested == buton_rqst)
+      CLKLF_Set_Year(&increment_button, &decrement_button);
+      if(Setting_Year_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
 	  settings_menu_state_e = month_setting;
-	  APPIFEF_Clear();
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
     case month_setting:
 
-      APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_MOUNTH], 7);
-      if(Setting_Day_Requested == buton_rqst)
+      CLKLF_Set_Month(&increment_button, &decrement_button);
+      if(Setting_Month_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
 	  settings_menu_state_e = day_setting;
-	  APPIFEF_Clear();
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
     case day_setting:
 
-      APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_DAY], 6);
-
-      if(Setting_Exit_Requested == buton_rqst)
+      CLKLF_Set_Day(&increment_button, &decrement_button);
+      if(Setting_Day_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
 	  settings_menu_state_e = exit_setting;
-	  APPIFEF_Clear();
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
     default:
+
+      delay_state += CLK_UNIT_ONE;
+      APPIFEF_Send_String_Saving();
+
+      if(0x04 == delay_state)
+	{
+	  main_clock_state_e = print;
+	  delay_state = 0x00u;
+	  WriteDate(clk_temp_buffer_date);
+	  WriteTime(clk_temp_buffer_time);
+	  APPIFEF_Clear();
+	}
 
       break;
   }
 }
 
-static void CLKLF_Set_Hour(void)
+static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
+
+  if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
+    {
+      clk_temp_buffer_time[CLK_HRS] += CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Increment, button_proccessed);
+      APPIFEF_Clear_push_button(Increment);
+    }
+  else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
+    {
+      clk_temp_buffer_time[CLK_HRS] -= CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
+      APPIFEF_Clear_push_button(Decrement);
+    }
+  else
+    {
+
+    }
+
   if (clk_temp_buffer_time[CLK_HRS] <= 0x00u)
     {
       clk_temp_buffer_time[CLK_HRS] = 0x00u;
     }
-  else if (clk_temp_buffer_time[CLK_HRS] >= 0x0Cu)
+  else if (clk_temp_buffer_time[CLK_HRS] >= 12)
     {
-      clk_temp_buffer_time[CLK_HRS] = 0x0Cu;
+      clk_temp_buffer_time[CLK_HRS] = 12;
     }
 
-
-  if (Incrementing_Requested_Requested == APPIFEF_Get_Button_Req (Increment))
-    {
-      clk_temp_buffer_time[CLK_HRS] += CLK_UNIT_ONE;
-      APPIFEF_Clear_Button_Req(Increment);
-    }
-  else if (Incrementing_Requested_Requested== APPIFEF_Get_Button_Req (Decrement))
-    {
-      clk_temp_buffer_time[CLK_HRS] -= CLK_UNIT_ONE;
-      APPIFEF_Clear_Button_Req(Decrement);
-    }
+  APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_HRS], 3);
 }
+
+static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+
+  if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
+    {
+      clk_temp_buffer_time[CLK_MIN] += CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Increment, button_proccessed);
+      APPIFEF_Clear_push_button(Increment);
+    }
+  else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
+    {
+      clk_temp_buffer_time[CLK_MIN] -= CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
+      APPIFEF_Clear_push_button(Decrement);
+    }
+  else
+    {
+
+    }
+
+  if (clk_temp_buffer_time[CLK_MIN] <= 0x00u)
+    {
+      clk_temp_buffer_time[CLK_MIN] = 0x00u;
+    }
+  else if (clk_temp_buffer_time[CLK_MIN] >= 60)
+    {
+      clk_temp_buffer_time[CLK_MIN] = 60;
+    }
+
+  APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_MIN], 4);
+}
+
+static void CLKLF_Set_Sec(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+
+  if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
+    {
+      clk_temp_buffer_time[CLK_SEC] += CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Increment, button_proccessed);
+      APPIFEF_Clear_push_button(Increment);
+    }
+  else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
+    {
+      clk_temp_buffer_time[CLK_SEC] -= CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
+      APPIFEF_Clear_push_button(Decrement);
+    }
+  else
+    {
+
+    }
+
+  if (clk_temp_buffer_time[CLK_SEC] <= 0x00u)
+    {
+      clk_temp_buffer_time[CLK_SEC] = 0x00u;
+    }
+  else if (clk_temp_buffer_time[CLK_SEC] >= 60)
+    {
+      clk_temp_buffer_time[CLK_SEC] = 60;
+    }
+
+  APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_SEC], 5);
+}
+
+static void CLKLF_Set_Year(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+
+  if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
+    {
+      clk_temp_buffer_date[CLK_YEAR] += CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Increment, button_proccessed);
+      APPIFEF_Clear_push_button(Increment);
+    }
+  else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
+    {
+      clk_temp_buffer_date[CLK_YEAR] -= CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
+      APPIFEF_Clear_push_button(Decrement);
+    }
+  else
+    {
+
+    }
+
+  if (clk_temp_buffer_date[CLK_YEAR] <= 0x00u)
+    {
+      clk_temp_buffer_date[CLK_YEAR] = 0x00u;
+    }
+  else if (clk_temp_buffer_date[CLK_YEAR] >= 99u)
+    {
+      clk_temp_buffer_date[CLK_YEAR] = 99;
+    }
+
+  APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_YEAR], 8);
+}
+
+static void CLKLF_Set_Day(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+
+  if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
+    {
+      clk_temp_buffer_date[CLK_DAY] += CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Increment, button_proccessed);
+      APPIFEF_Clear_push_button(Increment);
+    }
+  else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
+    {
+      clk_temp_buffer_date[CLK_DAY] -= CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
+      APPIFEF_Clear_push_button(Decrement);
+    }
+  else
+    {
+
+    }
+
+  if (clk_temp_buffer_date[CLK_DAY] <= 0x00u)
+    {
+      clk_temp_buffer_date[CLK_DAY] = 0x00u;
+    }
+  else if (clk_temp_buffer_date[CLK_DAY] >= 30)
+    {
+      clk_temp_buffer_date[CLK_DAY] = 30;
+    }
+
+  APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_DAY], 6);
+}
+
+static void CLKLF_Set_Month(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+
+  if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
+    {
+      APPIFEF_Set_Button_Status(Increment, button_proccessed);
+      APPIFEF_Clear_push_button(Increment);
+      clk_temp_buffer_date[CLK_MOUNTH] += CLK_UNIT_ONE;
+    }
+  else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
+    {
+      clk_temp_buffer_date[CLK_MOUNTH] -= CLK_UNIT_ONE;
+      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
+      APPIFEF_Clear_push_button(Decrement);
+    }
+
+  if (clk_temp_buffer_date[CLK_MOUNTH] <= 0x00u)
+    {
+      clk_temp_buffer_date[CLK_MOUNTH] = 0x00u;
+    }
+  else if (clk_temp_buffer_date[CLK_MOUNTH] >= 12u)
+    {
+      clk_temp_buffer_date[CLK_MOUNTH] = 12u;
+    }
+
+  APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_MOUNTH], 7);
+}
+
 
 /*************** END OF FUNCTIONS ***************************************************************************/
