@@ -7,6 +7,8 @@
 
 
 #include "../appl/LCD/LCD16.h"
+#include "../appl/APPINTF/APPINTF.h"
+
 #include "stm32f4xx_hal.h"
 
 static void Write_Command(uint8_t com);
@@ -204,4 +206,23 @@ void Home(void)
 {
 	Write_Command(CURSOR_RETURN);
 	delay_us(2000);
+}
+
+void LCDEF_frist_Row(void)
+{
+  S_Texts_LCD_Status local_buffer_firts_row;
+
+  APPIFEF_Get_Time(&local_buffer_firts_row);
+  Set_Cursor(local_buffer_firts_row.row_position, local_buffer_firts_row.colum_position);
+  print_string(local_buffer_firts_row.appif_out_buffer_u8);
+}
+
+
+void LCDEF_Second_Row(void)
+{
+  S_Texts_LCD_Status local_buffer_second_row;
+
+  APPIFEF_Get_Date(&local_buffer_second_row);
+  Set_Cursor(local_buffer_second_row.row_position, local_buffer_second_row.colum_position);
+  print_string(local_buffer_second_row.appif_out_buffer_u8);
 }

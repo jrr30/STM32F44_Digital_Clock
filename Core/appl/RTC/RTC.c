@@ -41,37 +41,61 @@ static void Change_formarttwelve(uint8_t * source_timebuffer, uint8_t * des_time
 
 void RTC_updateTimeDate(void)
 {
+        //Updating buffer of time
 	(void)HAL_RTC_GetTime(&hrtc, &Time_handler, RTC_FORMAT_BIN);
+
+	//Updating buffer of date
 	(void)HAL_RTC_GetDate(&hrtc, &Date_handler, RTC_FORMAT_BIN);
 
+	//Saving time in buffer
 	TimeBuffer[HRS] = Time_handler.Hours;
 	TimeBuffer[MIN] = Time_handler.Minutes;
 	TimeBuffer[SEC] = Time_handler.Seconds;
 
+	//Saving date in buffer
 	DateBuffer[YEAR]   = Date_handler.Year;
 	DateBuffer[MOUNTH] = Date_handler.Month;
 	DateBuffer[DAY]    = Date_handler.Date;
 }
 
-void ReadDate(uint8_t * Ptrdatebuffer)
+void ReadDate(uint8_t * timebuffer_pu8)
 {
-	memcpy(Ptrdatebuffer, DateBuffer, MAX_DATE_BUFFER);
+	memcpy(timebuffer_pu8, DateBuffer, MAX_DATE_BUFFER);
 }
 
-void ReadTime(uint8_t * Ptrtimebuffer)
+void ReadTime(uint8_t * timebuffer_pu8)
 {
 	uint8_t localtime[MAX_TIME_BUFFER] = {0};
+
 	Change_formarttwelve(TimeBuffer, localtime);
-	memcpy(Ptrtimebuffer, localtime, MAX_TIME_BUFFER);
+	memcpy(timebuffer_pu8, localtime, MAX_TIME_BUFFER);
 }
 
-void WriteTime(void)
+void WriteTime(uint8_t * timebuffer_pu8)
 {
+  uint8_t localtime[MAX_TIME_BUFFER] = {0};
 
+  memcpy(localtime, timebuffer_pu8, MAX_DATE_BUFFER);
+
+  Time_handler.Hours = localtime[HRS];
+  Time_handler.Minutes = localtime[MIN];
+  Time_handler.Seconds = localtime[SEC];
+
+
+  HAL_RTC_SetTime(&hrtc, &Time_handler, RTC_FORMAT_BIN);
 }
-void WriteDate(void)
+void WriteDate(uint8_t * datebuffer_pu8)
 {
+  uint8_t localdate[MAX_DATE_BUFFER] = {0};
 
+  memcpy(localdate, datebuffer_pu8, MAX_DATE_BUFFER);
+
+  Date_handler.Year  = localdate[YEAR];
+  Date_handler.Month = localdate[MOUNTH];
+  Date_handler.Date  = localdate[DAY];
+
+
+  HAL_RTC_SetDate(&hrtc, &Date_handler, RTC_FORMAT_BIN);
 }
 
 

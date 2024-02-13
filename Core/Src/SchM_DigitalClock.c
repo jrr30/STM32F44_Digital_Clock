@@ -10,6 +10,7 @@
 #include "../appl/LCD/LCD16.h"
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 #include "../appl/APPINTF/APPINTF.h"
+#include "../appl/CLOCK_MODELE/CLOCK_MODULE.h"
 
 
 #include "FreeRTOS.h"
@@ -20,29 +21,27 @@
 #include <string.h>
 #include <stdlib.h>
 
-uint8_t localtest[3] = {0};
-
-TaskHandle_t Task_5ms_Handler = NULL;
-TaskHandle_t Task_20ms_Handler = NULL;
-TaskHandle_t Task_100ms_Handler = NULL;
+TaskHandle_t Task_50ms_Handler = NULL;
+TaskHandle_t Task_200ms_Handler = NULL;
+TaskHandle_t Task_400ms_Handler = NULL;
+TaskHandle_t Task_500ms_Handler = NULL;
 
 QueueHandle_t Time_Queue_Handler = NULL;
 QueueHandle_t User_Input_Time_Date_Queue_Handler = NULL;
 
-Input_Source source_e = Increment;
-uint16_t button_req_status_u16[Source_max] = {0};
-
-static void Task_20ms(void * parameters);
-static void Task_5ms(void * parameters);
-static void Task_100ms(void * parameters);
+static void Task_50ms(void * parameters);
+static void Task_200ms(void * parameters);
+static void Task_400ms(void * parameters);
+static void Task_500ms(void * parameters);
 
 
 void Task_Generation(void)
 {
 
-	xTaskCreate(Task_5ms, "5ms", 100, NULL, 1, &Task_5ms_Handler);
-	xTaskCreate(Task_20ms, "20ms", 100, NULL, 1, &Task_20ms_Handler);
-	xTaskCreate(Task_100ms, "100ms", 100, NULL, 2, &Task_100ms_Handler);
+	xTaskCreate(Task_50ms,   "50ms", 200, NULL, 1, &Task_50ms_Handler );
+	xTaskCreate(Task_200ms, "200ms", 200, NULL, 1, &Task_200ms_Handler);
+	xTaskCreate(Task_400ms, "400ms", 400, NULL, 2, &Task_400ms_Handler);
+	xTaskCreate(Task_500ms, "500ms", 200, NULL, 3, &Task_500ms_Handler);
 
 }
 
@@ -56,7 +55,7 @@ void Task_Generation(void)
   * @retval None
   */
 
-void Task_5ms(void * parameters)
+void Task_50ms(void * parameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
@@ -64,7 +63,7 @@ void Task_5ms(void * parameters)
 	{
 
 		Io_Thread();
-		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(5));
+		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(50));
 	}
 }
 
@@ -77,16 +76,37 @@ void Task_5ms(void * parameters)
   * @retval None
   */
 
-void Task_20ms(void * parameters)
+void Task_200ms(void * parameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
 	for(;;)
 	{
-		RTC_updateTimeDate();
-		ReadTime(localtest);
-		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(20));
+	    RTC_updateTimeDate();
+	    APPIFEF_Thread();
+	    vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(200));
+	}
+}
+
+/**
+  * @brief  This task run every 20ms by the scheduler.
+  *
+  * @note   This task will handle all activities that need to run at 20ms
+  *
+  * @param  None
+  * @retval None
+  */
+
+void Task_400ms(void * parameters)
+{
+	TickType_t xLastWakeTime;
+	xLastWakeTime = xTaskGetTickCount();
+
+	for(;;)
+	{
+	    FSMEF_Clock_Thread();
+	    vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(400));
 	}
 }
 
@@ -99,27 +119,30 @@ void Task_20ms(void * parameters)
   * @retval None
   */
 
-void Task_100ms(void * parameters)
+void Task_500ms(void * parameters)
 {
-	TickType_t xLastWakeTime;
-	xLastWakeTime = xTaskGetTickCount();
-//	uint8_t counter = 0;
-//	uint8_t counter2 = 0;
-	for(;;)
+  TickType_t xLastWakeTime;
+  xLastWakeTime = xTaskGetTickCount();
+  uint8_t switch_row = 0x01u;
+  for(;;)
+    {
+      if(switch_row == ROW_UP)
 	{
-//		counter2 ++;
-//		if(counter2 == 20)
-//		{
-//			counter++;
-//			uint8_t Buffer_time[2];
-//			sprintf((char *)Buffer_time, "%02d", counter);
-//			Set_Cursor(Row_1, Column_9);
-//			print_string(Buffer_time);
-//			counter2 = 0;
-//		}
-	        APPIFEF_Thread();
-		button_req_status_u16[source_e] = APPIFEF_Get_Button_Req(source_e);
-		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(100));
+	  LCDEF_frist_Row();
+	  switch_row = ROW_DOWN;
 	}
+      else if (switch_row == ROW_DOWN)
+	{
+	  LCDEF_Second_Row();
+	  switch_row = ROW_UP;
+	}
+      else
+	{
+	  Set_Cursor(Row_1, Column_1);
+	  print_string((unsigned char *)"Error task send");
+	}
+
+      vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(500));
+    }
 }
 

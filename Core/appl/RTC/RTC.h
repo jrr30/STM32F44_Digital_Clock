@@ -23,8 +23,8 @@
 void RTC_updateTimeDate(void);
 void ReadTime(uint8_t * ptrtimebuffer);
 void ReadDate(uint8_t * Ptrdatebuffer);
-void WriteTime(void);
-void WriteDate(void);
+void WriteTime(uint8_t * timebuffer_pu8);
+void WriteDate(uint8_t * datebuffer_pu8);
 
 
 #endif /* APPL_RTC_RTC_H_ */
