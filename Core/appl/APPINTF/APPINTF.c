@@ -8,6 +8,7 @@
 
 #include "../appl/APPINTF/APPINTF.h"
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
+#include "../appl/BUZZER/BUZZER.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -156,6 +157,7 @@ void APPIFEF_Get_Button_Req(Input_Source source_e, button_descriptor * out_data)
 void APPIFEF_Set_Button_Status(Input_Source source_e, button_status button_status_e)
 {
   push_button_status_u16[source_e].button_status = button_status_e;
+  buzzer_beep_on();
 }
 
 void APPIFEF_Clear_push_button(Input_Source source_e)

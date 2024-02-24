@@ -11,20 +11,26 @@
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 #include "../appl/APPINTF/APPINTF.h"
 #include "../appl/CLOCK_MODELE/CLOCK_MODULE.h"
+#include "../appl/BUZZER/BUZZER.h"
 
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include "timers.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+#include "main.h"
+
 TaskHandle_t Task_50ms_Handler = NULL;
 TaskHandle_t Task_200ms_Handler = NULL;
 TaskHandle_t Task_400ms_Handler = NULL;
 TaskHandle_t Task_500ms_Handler = NULL;
+
+TimerHandle_t buzzer_timer = NULL;
 
 QueueHandle_t Time_Queue_Handler = NULL;
 QueueHandle_t User_Input_Time_Date_Queue_Handler = NULL;
@@ -34,6 +40,7 @@ static void Task_200ms(void * parameters);
 static void Task_400ms(void * parameters);
 static void Task_500ms(void * parameters);
 
+static void BuzzerTimerCallback( TimerHandle_t xTimer);
 
 void Task_Generation(void)
 {
@@ -43,8 +50,27 @@ void Task_Generation(void)
 	xTaskCreate(Task_400ms, "400ms", 400, NULL, 2, &Task_400ms_Handler);
 	xTaskCreate(Task_500ms, "500ms", 200, NULL, 3, &Task_500ms_Handler);
 
+	buzzer_timer = xTimerCreate("Buzzer_Timer", pdMS_TO_TICKS(BUZZER_TIME_ON), pdFALSE, ( void * ) 0, BuzzerTimerCallback);
+
 }
 
+void delay_buzzer_start(void)
+{
+
+  if( xTimerStart( buzzer_timer, 0) != pdPASS )
+    {
+
+    }
+  else
+    {
+      HAL_GPIO_WritePin(GPIOA, BUZZER_OUT_Pin, GPIO_PIN_SET);
+    }
+}
+
+void BuzzerTimerCallback( TimerHandle_t xTimer)
+{
+  HAL_GPIO_WritePin(GPIOA, BUZZER_OUT_Pin, GPIO_PIN_RESET);
+}
 
 /**
   * @brief  This task run every 5ms by the scheduler.
