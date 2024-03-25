@@ -18,6 +18,7 @@ static uint8_t TimeBuffer[MAX_TIME_BUFFER];
 static uint8_t DateBuffer[MAX_DATE_BUFFER];
 static RTC_TimeTypeDef Time_handler;
 static RTC_DateTypeDef Date_handler;
+static RTC_AlarmTypeDef Alarm_handler;
 
 typedef enum format_t
 {
@@ -58,6 +59,7 @@ void RTC_updateTimeDate(void)
 	DateBuffer[DAY]    = Date_handler.Date;
 }
 
+
 void ReadDate(uint8_t * timebuffer_pu8)
 {
 	memcpy(timebuffer_pu8, DateBuffer, MAX_DATE_BUFFER);
@@ -77,13 +79,14 @@ void WriteTime(uint8_t * timebuffer_pu8)
 
   memcpy(localtime, timebuffer_pu8, MAX_DATE_BUFFER);
 
-  Time_handler.Hours = localtime[HRS];
+  Time_handler.Hours   = localtime[HRS];
   Time_handler.Minutes = localtime[MIN];
   Time_handler.Seconds = localtime[SEC];
 
 
   HAL_RTC_SetTime(&hrtc, &Time_handler, RTC_FORMAT_BIN);
 }
+
 void WriteDate(uint8_t * datebuffer_pu8)
 {
   uint8_t localdate[MAX_DATE_BUFFER] = {0};
@@ -98,4 +101,17 @@ void WriteDate(uint8_t * datebuffer_pu8)
   HAL_RTC_SetDate(&hrtc, &Date_handler, RTC_FORMAT_BIN);
 }
 
+void SetAlarm(uint8_t * timebuffer_pu8)
+{
+  uint8_t localtime[MAX_TIME_BUFFER] = {0};
+
+  memcpy(localtime, timebuffer_pu8, MAX_DATE_BUFFER);
+
+  Alarm_handler.AlarmTime.Hours   = localtime[HRS];;
+  Alarm_handler.AlarmTime.Minutes = localtime[MIN];
+  Alarm_handler.AlarmTime.Seconds = localtime[SEC];
+
+
+  HAL_RTC_SetAlarm_IT(&hrtc, &Alarm_handler, RTC_FORMAT_BIN);
+}
 
