@@ -25,7 +25,7 @@
 #define APPIF_MOUNTH (0x01u)
 #define APPIF_DAY    (0x02u)
 
-#define APPIF_MAX_MESSAGES (0x0Cu)
+#define APPIF_MAX_MESSAGES (13u)
 /*User typedef------------------------------------------*/
 
 
@@ -49,8 +49,9 @@ static S_Print_Texts_LCD menu_texts_formart_s[APPIF_MAX_MESSAGES] =
 	{Row_1, Column_1, (unsigned char *)"Enter Day:%02d   "}, //Set Day          Index -> 6
 	{Row_1, Column_1, (unsigned char *)"Enter Month:%02d  "}, //Set Month       Index -> 7
 	{Row_1, Column_1, (unsigned char *)"Enter Year:20%02d"}, //Set Year         Index -> 8
-	{Row_2, Column_1, (unsigned char *)"                "}, //Set Year          Index -> 9
+	{Row_2, Column_1, (unsigned char *)"                "}, //Empty Row         Index -> 9
 	{Row_1, Column_1, (unsigned char *)"Saving Settings "}, //Set Year          Index -> 10
+	{Row_1, Column_1, (unsigned char *)"Working on it :)"}, //Alarm String      Index -> 11
     };
 
 static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source source_e);
@@ -203,6 +204,19 @@ void APPIFEF_Send_String_Settings(void)
   sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[2].texts_lcd);
   appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[2].colum_position;
   appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[2].row_position;
+
+  //Clearing low row
+  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[9].texts_lcd);
+  appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[9].colum_position;
+  appif_downrow_buffer_LCD.row_position = menu_texts_formart_s[9].row_position;
+}
+
+void APPIFEF_Send_String_Alarm(void)
+{
+  //Sending Settings on screen
+  sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[11].texts_lcd);
+  appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[11].colum_position;
+  appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[11].row_position;
 
   //Clearing low row
   sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[9].texts_lcd);

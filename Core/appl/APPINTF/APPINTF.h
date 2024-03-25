@@ -106,6 +106,7 @@ void APPIFEF_Get_Date(S_Texts_LCD_Status * outbuffer_pS);
 void APPIFEF_Send_String_Settings(void);
 void APPIFEF_Send_String_Saving(void);
 void APPIFEF_Send_Setting(uint8_t  date_buffer_pu8, uint8_t index_string_u8);
+void APPIFEF_Send_String_Alarm(void);
 
 void APPIFEF_Clear(void);
 

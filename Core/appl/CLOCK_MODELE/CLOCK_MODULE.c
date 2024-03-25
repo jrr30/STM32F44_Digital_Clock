@@ -138,9 +138,9 @@ void FSMEF_Clock_Thread(void)
 	  settings_menu_state_e = setting_init;
 	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
-      else if(Alarm_max_Requested == alarm_button.push_buttonuest_u16 && button_pushed == alarm_button.button_status)
+      else if(Alarm_Ente_Requested == alarm_button.push_buttonuest_u16 && button_pushed == alarm_button.button_status)
 	{
-	  main_clock_state_e = set_time;
+	  main_clock_state_e = set_alaram;
 	  APPIFEF_Set_Button_Status(Alarm, button_proccessed);
 	}
 
@@ -152,9 +152,12 @@ void FSMEF_Clock_Thread(void)
       break;
     case set_alaram:
 
+      APPIFEF_Send_String_Alarm();
+
       if(Alarm_Exit_Requested == alarm_button.push_buttonuest_u16 && button_pushed == alarm_button.button_status)
 	{
 	  main_clock_state_e = print;
+	  APPIFEF_Clear();
 	  APPIFEF_Set_Button_Status(Alarm, button_proccessed);
 	}
       break;
