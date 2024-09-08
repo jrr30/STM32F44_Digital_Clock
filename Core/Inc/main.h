@@ -58,30 +58,34 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define SET_BUTTON_Pin GPIO_PIN_13
-#define SET_BUTTON_GPIO_Port GPIOC
-#define BUZZER_OUT_Pin GPIO_PIN_5
-#define BUZZER_OUT_GPIO_Port GPIOA
-#define DATA_D4_Pin GPIO_PIN_5
-#define DATA_D4_GPIO_Port GPIOC
-#define DATA_D5_Pin GPIO_PIN_6
-#define DATA_D5_GPIO_Port GPIOC
-#define DECREMENT_BUTTON_Pin GPIO_PIN_7
-#define DECREMENT_BUTTON_GPIO_Port GPIOC
-#define DATA_D6_Pin GPIO_PIN_8
-#define DATA_D6_GPIO_Port GPIOC
-#define DATA_D7_Pin GPIO_PIN_9
-#define DATA_D7_GPIO_Port GPIOC
+#define SPI2_CS_Pin GPIO_PIN_1
+#define SPI2_CS_GPIO_Port GPIOB
+#define BOOT1_Pin GPIO_PIN_2
+#define BOOT1_GPIO_Port GPIOB
+#define BUZZER_OUT_Pin GPIO_PIN_8
+#define BUZZER_OUT_GPIO_Port GPIOC
+#define DECREMENT_BUTTON_Pin GPIO_PIN_9
+#define DECREMENT_BUTTON_GPIO_Port GPIOA
+#define INCREMENT_BUTTON_Pin GPIO_PIN_10
+#define INCREMENT_BUTTON_GPIO_Port GPIOA
 #define SET_ALARM_BUTTON_Pin GPIO_PIN_11
-#define SET_ALARM_BUTTON_GPIO_Port GPIOC
-#define INCREMENT_BUTTON_Pin GPIO_PIN_12
-#define INCREMENT_BUTTON_GPIO_Port GPIOC
-#define RS_Pin GPIO_PIN_6
-#define RS_GPIO_Port GPIOB
-#define ENABLE_Pin GPIO_PIN_8
+#define SET_ALARM_BUTTON_GPIO_Port GPIOA
+#define SET_BUTTON_Pin GPIO_PIN_12
+#define SET_BUTTON_GPIO_Port GPIOA
+#define DATA_D7_Pin GPIO_PIN_15
+#define DATA_D7_GPIO_Port GPIOA
+#define DATA_D6_Pin GPIO_PIN_10
+#define DATA_D6_GPIO_Port GPIOC
+#define DATA_D5_Pin GPIO_PIN_11
+#define DATA_D5_GPIO_Port GPIOC
+#define DATA_D4_Pin GPIO_PIN_12
+#define DATA_D4_GPIO_Port GPIOC
+#define ENABLE_Pin GPIO_PIN_7
 #define ENABLE_GPIO_Port GPIOB
-#define RW_Pin GPIO_PIN_9
+#define RW_Pin GPIO_PIN_8
 #define RW_GPIO_Port GPIOB
+#define RS_Pin GPIO_PIN_9
+#define RS_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
