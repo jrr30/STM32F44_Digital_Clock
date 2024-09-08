@@ -56,24 +56,23 @@ static uint8_t last_index_u8   =  0x00u;
 
 void Io_Thread(void)
 {
-//	uint8_t source_index_u8 = 0x00u;
 
-	if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,SET_BUTTON_Pin) && (Set_private == (last_known_u8 & Set_private)))
+	if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA,SET_BUTTON_Pin) && (Set_private == (last_known_u8 & Set_private)))
 	{
 		Input_Bouncer[Set] +=0x01u;
 		last_known_u8 = Set_private;
 	}
-	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,SET_ALARM_BUTTON_Pin) && (Alarm_private == (last_known_u8 & Alarm_private)))
+	else if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA,SET_ALARM_BUTTON_Pin) && (Alarm_private == (last_known_u8 & Alarm_private)))
 	{
 		Input_Bouncer[Alarm] +=0x01u;
 		last_known_u8 = Alarm_private;
 	}
-	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,INCREMENT_BUTTON_Pin) && (Increment_private == (last_known_u8 & Increment_private)))
+	else if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA,INCREMENT_BUTTON_Pin) && (Increment_private == (last_known_u8 & Increment_private)))
 	{
 		Input_Bouncer[Increment] +=0x01u;
 		last_known_u8 = Increment_private;
 	}
-	else if(GPIO_PIN_SET == HAL_GPIO_ReadPin(GPIOC,DECREMENT_BUTTON_Pin) && (Decrement_private == (last_known_u8 & Decrement_private)))
+	else if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA,DECREMENT_BUTTON_Pin) && (Decrement_private == (last_known_u8 & Decrement_private)))
 	{
 		Input_Bouncer[Decrement] +=0x01u;
 		last_known_u8 = Decrement_private;

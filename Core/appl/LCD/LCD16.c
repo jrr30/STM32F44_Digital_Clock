@@ -10,6 +10,7 @@
 #include "../appl/APPINTF/APPINTF.h"
 
 #include "stm32f4xx_hal.h"
+#include <main.h>
 
 static void Write_Command(uint8_t com);
 static void Enable_Pulse(void);
@@ -65,14 +66,17 @@ static void Write_Data_Command_GPIO(uint8_t command, uint8_t rs)
 	GPIOC->BSRR = bits_value;
 #endif
 
-	HAL_GPIO_WritePin(DATA_PORT,DATA_D4,((command>>0)&TRUE_VALUE));
-	HAL_GPIO_WritePin(DATA_PORT,DATA_D5,((command>>1)&TRUE_VALUE));
-	HAL_GPIO_WritePin(DATA_PORT,DATA_D6,((command>>2)&TRUE_VALUE));
-	HAL_GPIO_WritePin(DATA_PORT,DATA_D7,((command>>3)&TRUE_VALUE));
+	HAL_GPIO_WritePin(DATA_D4_GPIO_Port,DATA_D4,((command>>0)&TRUE_VALUE));
+	HAL_GPIO_WritePin(DATA_D5_GPIO_Port,DATA_D5,((command>>1)&TRUE_VALUE));
+	HAL_GPIO_WritePin(DATA_D6_GPIO_Port,DATA_D6,((command>>2)&TRUE_VALUE));
+	HAL_GPIO_WritePin(DATA_D7_GPIO_Port,DATA_D7,((command>>3)&TRUE_VALUE));
 
 	Enable_Pulse();
 	delay_us(1);
-	HAL_GPIO_WritePin(DATA_PORT, DATA_D4|DATA_D5|DATA_D6|DATA_D7, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DATA_D4_GPIO_Port,DATA_D4,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DATA_D5_GPIO_Port,DATA_D5,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DATA_D6_GPIO_Port,DATA_D6,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DATA_D7_GPIO_Port,DATA_D7,GPIO_PIN_RESET);
 }
 
 /**

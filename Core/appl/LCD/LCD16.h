@@ -16,22 +16,43 @@ extern void delay_us(uint32_t microseconds);
 #define ROW_DOWN 2u
 
 
-/*
- * Macros for PINs in order to control RS, Enable, RW interfaced with specific port
- */
-#define PIN_CONTROL_PORT GPIOB
-#define RS GPIO_PIN_6
-#define ENABLE GPIO_PIN_8
-#define RW GPIO_PIN_9
+#define DATA_D7_Pin GPIO_PIN_15
+#define DATA_D7_GPIO_Port GPIOA
+
+#define DATA_D6_Pin GPIO_PIN_10
+#define DATA_D6_GPIO_Port GPIOC
+
+#define DATA_D5_Pin GPIO_PIN_11
+#define DATA_D5_GPIO_Port GPIOC
+
+#define DATA_D4_Pin GPIO_PIN_12
+#define DATA_D4_GPIO_Port GPIOC
+
+#define ENABLE_Pin GPIO_PIN_7
+#define ENABLE_GPIO_Port GPIOB
+
+#define RW_Pin GPIO_PIN_8
+#define RW_GPIO_Port GPIOB
+
+#define RS_Pin GPIO_PIN_9
+#define RS_GPIO_Port GPIOB
 
 /*
  * Macros for PINs in order to control RS, Enable, RW interfaced with specific port
  */
-#define DATA_PORT GPIOC
-#define DATA_D4 GPIO_PIN_5
-#define DATA_D5 GPIO_PIN_6
-#define DATA_D6 GPIO_PIN_8
-#define DATA_D7 GPIO_PIN_9
+#define PIN_CONTROL_PORT GPIOB
+
+#define RS RS_Pin
+#define ENABLE ENABLE_Pin
+#define RW RW_Pin
+
+/*
+ * Macros for PINs in order to control RS, Enable, RW interfaced with specific port
+ */
+#define DATA_D4 DATA_D4_Pin
+#define DATA_D5 DATA_D5_Pin
+#define DATA_D6 DATA_D6_Pin
+#define DATA_D7 DATA_D7_Pin
 
 /*
  * General Macros for Driver

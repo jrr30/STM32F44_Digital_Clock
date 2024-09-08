@@ -53,6 +53,11 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c3;
+
+//RTC_HandleTypeDef hrtc;
+
+SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim5;
 
@@ -69,6 +74,8 @@ static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_UART4_Init(void);
+static void MX_I2C3_Init(void);
+static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
 const uint8_t text[] = "Setting Date";
@@ -117,10 +124,13 @@ int main(void)
   MX_RTC_Init();
   MX_TIM5_Init();
   MX_UART4_Init();
+  MX_I2C3_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim5);
 
   LCD_Config();
+
   Init_digital_input();
   APPIFEF_Init();
 
@@ -160,10 +170,11 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -183,6 +194,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C3_Init(void)
+{
+
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.ClockSpeed = 100000;
+  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
+
 }
 
 /**
@@ -235,7 +280,7 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
-  sDate.WeekDay = 0u; //This day must match with, sAlarm.AlarmDateWeekDay, this will trigger the interrupt HAL_RTC_AlarmAEventCallback. ToDo, turn on this to make alarm to work.
+  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
   sDate.Month = RTC_MONTH_JANUARY;
   sDate.Date = 0x1;
   sDate.Year = 0x20;
@@ -248,7 +293,7 @@ static void MX_RTC_Init(void)
   /** Enable the Alarm A
   */
   sAlarm.AlarmTime.Hours = 0x1;
-  sAlarm.AlarmTime.Minutes = 0x1;
+  sAlarm.AlarmTime.Minutes = 0x0;
   sAlarm.AlarmTime.Seconds = 0x0;
   sAlarm.AlarmTime.SubSeconds = 0x0;
   sAlarm.AlarmTime.TimeFormat = RTC_HOURFORMAT12_AM;
@@ -256,8 +301,8 @@ static void MX_RTC_Init(void)
   sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
   sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
   sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_WEEKDAY;
-  sAlarm.AlarmDateWeekDay = RTC_WEEKDAY_TUESDAY;
+  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+  sAlarm.AlarmDateWeekDay = 0x1;
   sAlarm.Alarm = RTC_ALARM_A;
   if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
   {
@@ -266,6 +311,44 @@ static void MX_RTC_Init(void)
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
 
 }
 
@@ -364,40 +447,43 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(BUZZER_OUT_GPIO_Port, BUZZER_OUT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin|BOOT1_Pin|ENABLE_Pin|RW_Pin
+                          |RS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, DATA_D4_Pin|DATA_D5_Pin|DATA_D6_Pin|DATA_D7_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, BUZZER_OUT_Pin|DATA_D6_Pin|DATA_D5_Pin|DATA_D4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RS_Pin|ENABLE_Pin|RW_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(DATA_D7_GPIO_Port, DATA_D7_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : SET_BUTTON_Pin DECREMENT_BUTTON_Pin SET_ALARM_BUTTON_Pin INCREMENT_BUTTON_Pin */
-  GPIO_InitStruct.Pin = SET_BUTTON_Pin|DECREMENT_BUTTON_Pin|SET_ALARM_BUTTON_Pin|INCREMENT_BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : BUZZER_OUT_Pin */
-  GPIO_InitStruct.Pin = BUZZER_OUT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(BUZZER_OUT_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : DATA_D4_Pin DATA_D5_Pin DATA_D6_Pin DATA_D7_Pin */
-  GPIO_InitStruct.Pin = DATA_D4_Pin|DATA_D5_Pin|DATA_D6_Pin|DATA_D7_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RS_Pin ENABLE_Pin RW_Pin */
-  GPIO_InitStruct.Pin = RS_Pin|ENABLE_Pin|RW_Pin;
+  /*Configure GPIO pins : SPI2_CS_Pin BOOT1_Pin ENABLE_Pin RW_Pin
+                           RS_Pin */
+  GPIO_InitStruct.Pin = SPI2_CS_Pin|BOOT1_Pin|ENABLE_Pin|RW_Pin
+                          |RS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : BUZZER_OUT_Pin DATA_D6_Pin DATA_D5_Pin DATA_D4_Pin */
+  GPIO_InitStruct.Pin = BUZZER_OUT_Pin|DATA_D6_Pin|DATA_D5_Pin|DATA_D4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : DECREMENT_BUTTON_Pin INCREMENT_BUTTON_Pin SET_ALARM_BUTTON_Pin SET_BUTTON_Pin */
+  GPIO_InitStruct.Pin = DECREMENT_BUTTON_Pin|INCREMENT_BUTTON_Pin|SET_ALARM_BUTTON_Pin|SET_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : DATA_D7_Pin */
+  GPIO_InitStruct.Pin = DATA_D7_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(DATA_D7_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
