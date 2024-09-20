@@ -25,10 +25,35 @@
 #define APPIF_MOUNTH (0x01u)
 #define APPIF_DAY    (0x02u)
 
-#define APPIF_MAX_MESSAGES (13u)
 /*User typedef------------------------------------------*/
 
+typedef enum APPIF_Date_info_t
+{
+	APPIF_time_txt,
+	APPIF_date_txt,
+	APPIF_setting_Enter_txt,
+	APPIF_set_hours_txt,
+	APPIF_set_minutes_txt,
+	APPIF_set_time_format_txt,
+	APPIF_set_day_txt,
+	APPIF_set_month_txt,
+	APPIF_set_year_txt,
+	APPIF_set_empty_txt,
+	APPIF_saving_settings_txt,
+	APPIF_working_on_txt,
 
+	APPIF_Txt_Max
+}APPIF_Date_info_T;
+
+typedef enum APPIF_time_info_t
+{
+        APPIF_hours,
+	APPIF_minutes,
+	APPIF_seconds,
+	APPIF_time_format,
+
+	APPIF_time_info_Max
+}APPIF_time_info_T;
 /*Private variables definition--------------------------*/
 
 //static volatile uint16_t push_button_status_u16[Source_max];
@@ -38,9 +63,9 @@ static button_descriptor push_button_status_u16[Source_max];
 static S_Texts_LCD_Status appif_uprow_buffer_LCD;
 static S_Texts_LCD_Status appif_downrow_buffer_LCD;
 
-static S_Print_Texts_LCD menu_texts_formart_s[APPIF_MAX_MESSAGES] =
+static S_Print_Texts_LCD menu_texts_formart_s[APPIF_Txt_Max] =
     {
-	{Row_1, Column_4, (unsigned char *)"%02d:%02d:%02d"  }, //Time message      Index -> 0
+	{Row_1, Column_4, (unsigned char *)"%02d:%02d:%02d %s"  }, //Time message      Index -> 0
 	{Row_2, Column_4, (unsigned char *)"%02d/%02d/%4d"   }, //Date message      Index -> 1
 	{Row_1, Column_1, (unsigned char *)"Settings        "}, //Settings Enter    Index -> 2
 	{Row_1, Column_1, (unsigned char *)"Enter Hour:%02d "}, //Set Hours         Index -> 3
@@ -185,7 +210,20 @@ void APPIFEF_Get_Date(S_Texts_LCD_Status * outbuffer_pS)
 
 void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8)
 {
-    sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[0].texts_lcd, time_buffer_pu8[APPIF_HRS], time_buffer_pu8[APPIF_MIN], time_buffer_pu8[APPIF_SEC]);
+  uint8_t clk_temp_buffer_time[APPIF_time_info_Max];
+  uint8_t am_pm_txt[3];
+
+  memcpy(clk_temp_buffer_time, time_buffer_pu8, sizeof(clk_temp_buffer_time));
+
+  if(0u  == clk_temp_buffer_time[APPIF_time_format])
+    {
+      memcpy(am_pm_txt, "am", sizeof(am_pm_txt));
+    }
+  else
+    {
+      memcpy(am_pm_txt, "pm", sizeof(am_pm_txt));
+    }
+    sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[APPIF_time_txt].texts_lcd, time_buffer_pu8[APPIF_HRS], time_buffer_pu8[APPIF_MIN], time_buffer_pu8[APPIF_SEC], (char *)am_pm_txt);
     appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[0].colum_position;
     appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[0].row_position;
 
@@ -193,7 +231,10 @@ void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8)
 
 void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8)
 {
-  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[1].texts_lcd, date_buffer_pu8[APPIF_DAY], date_buffer_pu8[APPIF_MOUNTH], 2000 + date_buffer_pu8[APPIF_YEAR]);
+
+
+
+  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[APPIF_date_txt].texts_lcd, date_buffer_pu8[APPIF_DAY], date_buffer_pu8[APPIF_MOUNTH], 2000 + date_buffer_pu8[APPIF_YEAR]);
   appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[1].colum_position;
   appif_downrow_buffer_LCD.row_position = menu_texts_formart_s[1].row_position;
 }

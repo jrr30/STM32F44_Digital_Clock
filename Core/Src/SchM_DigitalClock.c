@@ -149,24 +149,11 @@ void Task_500ms(void * parameters)
 {
   TickType_t xLastWakeTime;
   xLastWakeTime = xTaskGetTickCount();
-  uint8_t switch_row = 0x01u;
   for(;;)
     {
-      if(switch_row == ROW_UP)
-	{
-	  LCDEF_frist_Row();
-	  switch_row = ROW_DOWN;
-	}
-      else if (switch_row == ROW_DOWN)
-	{
-	  LCDEF_Second_Row();
-	  switch_row = ROW_UP;
-	}
-      else
-	{
-	  Set_Cursor(Row_1, Column_1);
-	  print_string((unsigned char *)"Error task send");
-	}
+
+      LCDEF_frist_Row();
+      LCDEF_Second_Row();
 
       vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(500));
     }

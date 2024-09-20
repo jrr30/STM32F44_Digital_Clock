@@ -71,6 +71,8 @@ typedef enum setting_menu_TAG
   exit_setting
 
 }E_setting_menu_states;
+
+
 /******************************************************************************
 * Module Variable Definitions
 *******************************************************************************/
@@ -78,8 +80,8 @@ E_main_clock_states main_clock_state_e = init;
 E_setting_menu_states settings_menu_state_e = setting_init;
 uint8_t delay_state = 0x00u;
 
-static uint8_t clk_temp_buffer_time[CLK_MAX_TIME_BUFFER];
-static uint8_t clk_temp_buffer_date[CLK_MAX_DATE_BUFFER];
+static uint8_t clk_temp_buffer_time[CLK_time_info_Max];
+static uint8_t clk_temp_buffer_date[CLK_date_info_Max];
 /******************************************************************************
 * Function Prototypes
 *******************************************************************************/
@@ -122,7 +124,7 @@ void FSMEF_Clock_Thread(void)
       break;
     case print:
 
-      //reading time from RTC SW component
+      //reading time from CLK SW component
       ReadTime(clk_temp_buffer_time);
       //sending time to Appitf SW component
       APPIFEF_Send_Time_Display(clk_temp_buffer_time);
