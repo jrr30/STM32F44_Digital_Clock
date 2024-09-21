@@ -70,7 +70,7 @@ static S_Print_Texts_LCD menu_texts_formart_s[APPIF_Txt_Max] =
 	{Row_1, Column_1, (unsigned char *)"Settings        "}, //Settings Enter    Index -> 2
 	{Row_1, Column_1, (unsigned char *)"Enter Hour:%02d "}, //Set Hours         Index -> 3
 	{Row_1, Column_1, (unsigned char *)"Enter Min:%02d  "}, //Set Minutes       Index -> 4
-	{Row_1, Column_1, (unsigned char *)"Enter Sec:%02d  "}, //Set Seconds       Index -> 5
+	{Row_1, Column_1, (unsigned char *)"Time: %02d      "}, //Set Seconds       Index -> 5
 	{Row_1, Column_1, (unsigned char *)"Enter Day:%02d   "}, //Set Day          Index -> 6
 	{Row_1, Column_1, (unsigned char *)"Enter Month:%02d  "}, //Set Month       Index -> 7
 	{Row_1, Column_1, (unsigned char *)"Enter Year:20%02d"}, //Set Year         Index -> 8
@@ -217,11 +217,11 @@ void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8)
 
   if(0u  == clk_temp_buffer_time[APPIF_time_format])
     {
-      memcpy(am_pm_txt, "am", sizeof(am_pm_txt));
+      strcpy((char *)am_pm_txt, "am");
     }
   else
     {
-      memcpy(am_pm_txt, "pm", sizeof(am_pm_txt));
+      strcpy((char *)am_pm_txt, "pm");
     }
     sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[APPIF_time_txt].texts_lcd, time_buffer_pu8[APPIF_HRS], time_buffer_pu8[APPIF_MIN], time_buffer_pu8[APPIF_SEC], (char *)am_pm_txt);
     appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[0].colum_position;
@@ -231,8 +231,6 @@ void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8)
 
 void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8)
 {
-
-
 
   sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[APPIF_date_txt].texts_lcd, date_buffer_pu8[APPIF_DAY], date_buffer_pu8[APPIF_MOUNTH], 2000 + date_buffer_pu8[APPIF_YEAR]);
   appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[1].colum_position;
@@ -295,6 +293,8 @@ void APPIFEF_Send_Setting(uint8_t date_buffer_pu8, uint8_t index_string_u8)
 
 void APPIFEF_Clear(void)
 {
+  memset(appif_uprow_buffer_LCD.appif_out_buffer_u8, ' ', APPIF_MAX_LCD_DIGIT);
+  memset(appif_downrow_buffer_LCD.appif_out_buffer_u8, ' ', APPIF_MAX_LCD_DIGIT);
   Clear();
 }
 

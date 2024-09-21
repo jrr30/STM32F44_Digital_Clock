@@ -62,7 +62,7 @@ void WriteTime(uint8_t * timebuffer_pu8)
 {
   uint8_t localtime[RTC_time_info_Max] = {0};
 
-  memcpy(localtime, timebuffer_pu8, MAX_DATE_BUFFER);
+  memcpy(localtime, timebuffer_pu8, sizeof(localtime));
 
   Time_handler.Hours   = localtime[RTC_hours];
   Time_handler.Minutes = localtime[RTC_minutes];
@@ -77,7 +77,7 @@ void WriteDate(uint8_t * datebuffer_pu8)
 {
   uint8_t localdate[RTC_date_info_Max] = {0};
 
-  memcpy(localdate, datebuffer_pu8, MAX_DATE_BUFFER);
+  memcpy(localdate, datebuffer_pu8, sizeof(localdate));
 
   Date_handler.Year  = localdate[RTC_year];
   Date_handler.Month = localdate[RTC_month];

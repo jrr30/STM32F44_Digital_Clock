@@ -109,6 +109,7 @@ void Task_200ms(void * parameters)
 
 	for(;;)
 	{
+
 	    RTC_updateTimeDate();
 	    APPIFEF_Thread();
 	    vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(200));
