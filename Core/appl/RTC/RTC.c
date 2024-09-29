@@ -9,13 +9,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#define MAX_TIME_BUFFER 0x03u
+#define MAX_TIME_BUFFER 0x04u
 #define MAX_DATE_BUFFER 0x03u
 
 RTC_HandleTypeDef hrtc;
 
-static uint8_t TimeBuffer[MAX_TIME_BUFFER];
-static uint8_t DateBuffer[MAX_DATE_BUFFER];
+static uint8_t TimeBuffer[RTC_time_info_Max];
+static uint8_t DateBuffer[RTC_date_info_Max];
 static RTC_TimeTypeDef Time_handler;
 static RTC_DateTypeDef Date_handler;
 static RTC_AlarmTypeDef Alarm_handler;
@@ -26,19 +26,6 @@ typedef enum format_t
 	twenty_four
 }format_T;
 
-static void Change_formarttwelve(uint8_t * source_timebuffer, uint8_t * des_timebuffer);
-
-static void Change_formarttwelve(uint8_t * source_timebuffer, uint8_t * des_timebuffer)
-{
-	uint8_t timeb_u8[MAX_TIME_BUFFER] = {0x00u};
-	memcpy(timeb_u8, source_timebuffer,MAX_TIME_BUFFER);
-
-	if(timeb_u8[HRS] > 12u)
-	{
-		timeb_u8[HRS] = timeb_u8[HRS] - 12u;
-	}
-	memcpy(des_timebuffer, timeb_u8, MAX_TIME_BUFFER);
-}
 
 void RTC_updateTimeDate(void)
 {
@@ -49,39 +36,38 @@ void RTC_updateTimeDate(void)
 	(void)HAL_RTC_GetDate(&hrtc, &Date_handler, RTC_FORMAT_BIN);
 
 	//Saving time in buffer
-	TimeBuffer[HRS] = Time_handler.Hours;
-	TimeBuffer[MIN] = Time_handler.Minutes;
-	TimeBuffer[SEC] = Time_handler.Seconds;
+	TimeBuffer[RTC_hours] = Time_handler.Hours;
+	TimeBuffer[RTC_minutes] = Time_handler.Minutes;
+	TimeBuffer[RTC_seconds] = Time_handler.Seconds;
+	TimeBuffer[RTC_time_format] = Time_handler.TimeFormat;
 
 	//Saving date in buffer
-	DateBuffer[YEAR]   = Date_handler.Year;
-	DateBuffer[MOUNTH] = Date_handler.Month;
-	DateBuffer[DAY]    = Date_handler.Date;
+	DateBuffer[RTC_year]   = Date_handler.Year;
+	DateBuffer[RTC_month] = Date_handler.Month;
+	DateBuffer[RTC_day]    = Date_handler.Date;
 }
 
 
 void ReadDate(uint8_t * timebuffer_pu8)
 {
-	memcpy(timebuffer_pu8, DateBuffer, MAX_DATE_BUFFER);
+	memcpy(timebuffer_pu8, DateBuffer, sizeof(DateBuffer));
 }
 
 void ReadTime(uint8_t * timebuffer_pu8)
 {
-	uint8_t localtime[MAX_TIME_BUFFER] = {0};
-
-	Change_formarttwelve(TimeBuffer, localtime);
-	memcpy(timebuffer_pu8, localtime, MAX_TIME_BUFFER);
+	memcpy(timebuffer_pu8, TimeBuffer, sizeof(TimeBuffer));
 }
 
 void WriteTime(uint8_t * timebuffer_pu8)
 {
-  uint8_t localtime[MAX_TIME_BUFFER] = {0};
+  uint8_t localtime[RTC_time_info_Max] = {0};
 
-  memcpy(localtime, timebuffer_pu8, MAX_DATE_BUFFER);
+  memcpy(localtime, timebuffer_pu8, sizeof(localtime));
 
-  Time_handler.Hours   = localtime[HRS];
-  Time_handler.Minutes = localtime[MIN];
-  Time_handler.Seconds = localtime[SEC];
+  Time_handler.Hours   = localtime[RTC_hours];
+  Time_handler.Minutes = localtime[RTC_minutes];
+  Time_handler.Seconds = localtime[RTC_seconds];
+  Time_handler.TimeFormat = localtime[RTC_time_format];
 
 
   HAL_RTC_SetTime(&hrtc, &Time_handler, RTC_FORMAT_BIN);
@@ -89,13 +75,13 @@ void WriteTime(uint8_t * timebuffer_pu8)
 
 void WriteDate(uint8_t * datebuffer_pu8)
 {
-  uint8_t localdate[MAX_DATE_BUFFER] = {0};
+  uint8_t localdate[RTC_date_info_Max] = {0};
 
-  memcpy(localdate, datebuffer_pu8, MAX_DATE_BUFFER);
+  memcpy(localdate, datebuffer_pu8, sizeof(localdate));
 
-  Date_handler.Year  = localdate[YEAR];
-  Date_handler.Month = localdate[MOUNTH];
-  Date_handler.Date  = localdate[DAY];
+  Date_handler.Year  = localdate[RTC_year];
+  Date_handler.Month = localdate[RTC_month];
+  Date_handler.Date  = localdate[RTC_day];
 
 
   HAL_RTC_SetDate(&hrtc, &Date_handler, RTC_FORMAT_BIN);
@@ -103,13 +89,14 @@ void WriteDate(uint8_t * datebuffer_pu8)
 
 void SetAlarm(uint8_t * timebuffer_pu8)
 {
-  uint8_t localtime[MAX_TIME_BUFFER] = {0};
+  uint8_t localtime[RTC_time_info_Max] = {0};
 
   memcpy(localtime, timebuffer_pu8, MAX_DATE_BUFFER);
 
-  Alarm_handler.AlarmTime.Hours   = localtime[HRS];;
-  Alarm_handler.AlarmTime.Minutes = localtime[MIN];
-  Alarm_handler.AlarmTime.Seconds = localtime[SEC];
+  Alarm_handler.AlarmTime.Hours   = localtime[RTC_hours];
+  Alarm_handler.AlarmTime.Minutes = localtime[RTC_minutes];
+  Alarm_handler.AlarmTime.Seconds = localtime[RTC_seconds];
+  Alarm_handler.AlarmTime.TimeFormat = localtime[RTC_time_format];
 
 
   HAL_RTC_SetAlarm_IT(&hrtc, &Alarm_handler, RTC_FORMAT_BIN);

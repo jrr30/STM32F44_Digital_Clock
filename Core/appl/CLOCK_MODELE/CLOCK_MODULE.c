@@ -24,6 +24,9 @@
 #include "../appl/DIGITALINPUT/DIGITALINPUT.h"
 #include "../appl/APPINTF/APPINTF.h"
 
+#include <string.h>
+#include <stdio.h>
+
 /******************************************************************************
 * Module Preprocessor Constants
 *******************************************************************************/
@@ -47,6 +50,8 @@
 #define CLK_DAY    (0x02u)
 
 #define CLK_UNIT_ONE (0x01)
+
+#define YEAR_2000 (2000u)
 /******************************************************************************
 * Module Typedefs
 *******************************************************************************/
@@ -64,13 +69,15 @@ typedef enum setting_menu_TAG
   setting_init,
   hour_setting,
   min_setting,
-  sec_setting,
+  time_formart_setting,
   year_setting,
   month_setting,
   day_setting,
   exit_setting
 
 }E_setting_menu_states;
+
+
 /******************************************************************************
 * Module Variable Definitions
 *******************************************************************************/
@@ -78,18 +85,19 @@ E_main_clock_states main_clock_state_e = init;
 E_setting_menu_states settings_menu_state_e = setting_init;
 uint8_t delay_state = 0x00u;
 
-static uint8_t clk_temp_buffer_time[CLK_MAX_TIME_BUFFER];
-static uint8_t clk_temp_buffer_date[CLK_MAX_DATE_BUFFER];
+static uint8_t clk_temp_buffer_time[CLK_time_info_Max];
+static uint8_t clk_temp_buffer_date[CLK_date_info_Max];
 /******************************************************************************
 * Function Prototypes
 *******************************************************************************/
 static void FSMLF_Menu_Config(void);
 static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descriptor * button_decrement);
 static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descriptor * button_decrement);
-static void CLKLF_Set_Sec(button_descriptor * button_increment, button_descriptor * button_decrement);
+static void CLKLF_Set_Time_Format(button_descriptor * button_increment, button_descriptor * button_decrement);
 static void CLKLF_Set_Year(button_descriptor * button_increment, button_descriptor * button_decrement);
 static void CLKLF_Set_Day(button_descriptor * button_increment, button_descriptor * button_decrement);
 static void CLKLF_Set_Month(button_descriptor * button_increment, button_descriptor * button_decrement);
+static void CLKF_Print_Time_Date(void);
 
 /******************************************************************************
 * Function Definitions
@@ -110,6 +118,7 @@ void FSMEF_Clock_Thread(void)
 {
   button_descriptor set_button;
   button_descriptor alarm_button;
+  LCD_Out_Buffer_T local_LCD_str;
 
   APPIFEF_Get_Button_Req(Set, &set_button);
   APPIFEF_Get_Button_Req(Alarm, &alarm_button);
@@ -122,15 +131,7 @@ void FSMEF_Clock_Thread(void)
       break;
     case print:
 
-      //reading time from RTC SW component
-      ReadTime(clk_temp_buffer_time);
-      //sending time to Appitf SW component
-      APPIFEF_Send_Time_Display(clk_temp_buffer_time);
-
-      //reading date from RTC SW component
-      ReadDate(clk_temp_buffer_date);
-      //sending date to Appitf SW component
-      APPIFEF_Send_Date_Display(clk_temp_buffer_date);
+      CLKF_Print_Time_Date();
 
       if(Setting_Enter_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
@@ -152,7 +153,13 @@ void FSMEF_Clock_Thread(void)
       break;
     case set_alaram:
 
-      APPIFEF_Send_String_Alarm();
+      strncpy((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Working on it :)", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+      strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+      APPIFEF_Send_LCD(&local_LCD_str);
 
       if(Alarm_Exit_Requested == alarm_button.push_buttonuest_u16 && button_pushed == alarm_button.button_status)
 	{
@@ -184,6 +191,7 @@ static void FSMLF_Menu_Config(void)
   button_descriptor set_button;
   button_descriptor increment_button;
   button_descriptor decrement_button;
+  LCD_Out_Buffer_T local_LCD_str;
 
   APPIFEF_Get_Button_Req(Set, &set_button);
   APPIFEF_Get_Button_Req(Increment, &increment_button);
@@ -194,7 +202,14 @@ static void FSMLF_Menu_Config(void)
     case setting_init:
 
       delay_state += CLK_UNIT_ONE;
-      APPIFEF_Send_String_Settings();
+
+      strncpy((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Settings        ", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+      strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+      APPIFEF_Send_LCD(&local_LCD_str);
 
       if(0x04 == delay_state)
 	{
@@ -219,13 +234,13 @@ static void FSMLF_Menu_Config(void)
 
       if(Setting_Min_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
-	  settings_menu_state_e = sec_setting;
+	  settings_menu_state_e = time_formart_setting;
 	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
-    case sec_setting:
+    case time_formart_setting:
 
-      CLKLF_Set_Sec(&increment_button, &decrement_button);
+      CLKLF_Set_Time_Format(&increment_button, &decrement_button);
 
       if(Setting_Sec_Requested == set_button.push_buttonuest_u16 && button_pushed == set_button.button_status)
 	{
@@ -264,7 +279,15 @@ static void FSMLF_Menu_Config(void)
     default:
 
       delay_state += CLK_UNIT_ONE;
-      APPIFEF_Send_String_Saving();
+
+      strncpy((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Saving Settings ", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+
+      strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+      APPIFEF_Send_LCD(&local_LCD_str);
 
       if(0x04 == delay_state)
 	{
@@ -281,16 +304,17 @@ static void FSMLF_Menu_Config(void)
 
 static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
+  LCD_Out_Buffer_T local_LCD_str;
 
   if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
     {
-      clk_temp_buffer_time[CLK_HRS] += CLK_UNIT_ONE;
+      clk_temp_buffer_time[CLK_hours] += CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Increment, button_proccessed);
       APPIFEF_Clear_push_button(Increment);
     }
   else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
     {
-      clk_temp_buffer_time[CLK_HRS] -= CLK_UNIT_ONE;
+      clk_temp_buffer_time[CLK_hours] -= CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Decrement, button_proccessed);
       APPIFEF_Clear_push_button(Decrement);
     }
@@ -299,30 +323,40 @@ static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descript
 
     }
 
-  if (clk_temp_buffer_time[CLK_HRS] <= 0x00u)
+  if (clk_temp_buffer_time[CLK_hours] <= 0x00u)
     {
-      clk_temp_buffer_time[CLK_HRS] = 0x00u;
+      clk_temp_buffer_time[CLK_hours] = 0x00u;
     }
-  else if (clk_temp_buffer_time[CLK_HRS] >= 12)
+  else if (clk_temp_buffer_time[CLK_hours] >= 12)
     {
-      clk_temp_buffer_time[CLK_HRS] = 12;
+      clk_temp_buffer_time[CLK_hours] = 12;
     }
 
-  APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_HRS], 3);
+  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Enter Hour:%02d ", clk_temp_buffer_time[CLK_hours]);
+  local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+  strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+  local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+  APPIFEF_Send_LCD(&local_LCD_str);
+
+
 }
 
 static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
+  LCD_Out_Buffer_T local_LCD_str;
+
   if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
     {
-      clk_temp_buffer_time[CLK_MIN] += CLK_UNIT_ONE;
+      clk_temp_buffer_time[CLK_minutes] += CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Increment, button_proccessed);
       APPIFEF_Clear_push_button(Increment);
     }
   else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
     {
-      clk_temp_buffer_time[CLK_MIN] -= CLK_UNIT_ONE;
+      clk_temp_buffer_time[CLK_minutes] -= CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Decrement, button_proccessed);
       APPIFEF_Clear_push_button(Decrement);
     }
@@ -331,30 +365,39 @@ static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descri
 
     }
 
-  if (clk_temp_buffer_time[CLK_MIN] <= 0x00u)
+  if (clk_temp_buffer_time[CLK_minutes] <= 0x00u)
     {
-      clk_temp_buffer_time[CLK_MIN] = 0x00u;
+      clk_temp_buffer_time[CLK_minutes] = 0x00u;
     }
-  else if (clk_temp_buffer_time[CLK_MIN] >= 60)
+  else if (clk_temp_buffer_time[CLK_minutes] >= 60)
     {
-      clk_temp_buffer_time[CLK_MIN] = 60;
+      clk_temp_buffer_time[CLK_minutes] = 60;
     }
 
-  APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_MIN], 4);
+  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Enter Min:%02d  ", clk_temp_buffer_time[CLK_minutes]);
+  local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+  strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+  local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+  APPIFEF_Send_LCD(&local_LCD_str);
 }
 
-static void CLKLF_Set_Sec(button_descriptor * button_increment, button_descriptor * button_decrement)
+static void CLKLF_Set_Time_Format(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
+
+  LCD_Out_Buffer_T local_LCD_str;
+  uint8_t am_pm_txt[3];
 
   if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
     {
-      clk_temp_buffer_time[CLK_SEC] += CLK_UNIT_ONE;
+      clk_temp_buffer_time[CLK_time_format] += CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Increment, button_proccessed);
       APPIFEF_Clear_push_button(Increment);
     }
   else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
     {
-      clk_temp_buffer_time[CLK_SEC] -= CLK_UNIT_ONE;
+      clk_temp_buffer_time[CLK_time_format] -= CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Decrement, button_proccessed);
       APPIFEF_Clear_push_button(Decrement);
     }
@@ -363,30 +406,40 @@ static void CLKLF_Set_Sec(button_descriptor * button_increment, button_descripto
 
     }
 
-  if (clk_temp_buffer_time[CLK_SEC] <= 0x00u)
+  if (clk_temp_buffer_time[CLK_time_format] <= 0x00u)
     {
-      clk_temp_buffer_time[CLK_SEC] = 0x00u;
+      clk_temp_buffer_time[CLK_time_format] = 0x00u;
+      strcpy((char *)am_pm_txt, "am");
     }
-  else if (clk_temp_buffer_time[CLK_SEC] >= 60)
+  else if (clk_temp_buffer_time[CLK_time_format] >= 1)
     {
-      clk_temp_buffer_time[CLK_SEC] = 60;
+      clk_temp_buffer_time[CLK_time_format] = 1;
+      strcpy((char *)am_pm_txt, "pm");
     }
 
-  APPIFEF_Send_Setting(clk_temp_buffer_time[CLK_SEC], 5);
+  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Time: %s     ", am_pm_txt);
+  local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+  strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+  local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+  APPIFEF_Send_LCD(&local_LCD_str);
 }
 
 static void CLKLF_Set_Year(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
+  LCD_Out_Buffer_T local_LCD_str;
+
   if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
     {
-      clk_temp_buffer_date[CLK_YEAR] += CLK_UNIT_ONE;
+      clk_temp_buffer_date[CLK_year] += CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Increment, button_proccessed);
       APPIFEF_Clear_push_button(Increment);
     }
   else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
     {
-      clk_temp_buffer_date[CLK_YEAR] -= CLK_UNIT_ONE;
+      clk_temp_buffer_date[CLK_year] -= CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Decrement, button_proccessed);
       APPIFEF_Clear_push_button(Decrement);
     }
@@ -395,30 +448,38 @@ static void CLKLF_Set_Year(button_descriptor * button_increment, button_descript
 
     }
 
-  if (clk_temp_buffer_date[CLK_YEAR] <= 0x00u)
+  if (clk_temp_buffer_date[CLK_year] <= 0x00u)
     {
-      clk_temp_buffer_date[CLK_YEAR] = 0x00u;
+      clk_temp_buffer_date[CLK_year] = 0x00u;
     }
-  else if (clk_temp_buffer_date[CLK_YEAR] >= 99u)
+  else if (clk_temp_buffer_date[CLK_year] >= 99u)
     {
-      clk_temp_buffer_date[CLK_YEAR] = 99;
+      clk_temp_buffer_date[CLK_year] = 99;
     }
 
-  APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_YEAR], 8);
+  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Enter Year:20%02d", clk_temp_buffer_date[CLK_year]);
+  local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+  strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+  local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+  APPIFEF_Send_LCD(&local_LCD_str);
 }
 
 static void CLKLF_Set_Day(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
+  LCD_Out_Buffer_T local_LCD_str;
+
   if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
     {
-      clk_temp_buffer_date[CLK_DAY] += CLK_UNIT_ONE;
+      clk_temp_buffer_date[CLK_day] += CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Increment, button_proccessed);
       APPIFEF_Clear_push_button(Increment);
     }
   else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
     {
-      clk_temp_buffer_date[CLK_DAY] -= CLK_UNIT_ONE;
+      clk_temp_buffer_date[CLK_day] -= CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Decrement, button_proccessed);
       APPIFEF_Clear_push_button(Decrement);
     }
@@ -427,45 +488,89 @@ static void CLKLF_Set_Day(button_descriptor * button_increment, button_descripto
 
     }
 
-  if (clk_temp_buffer_date[CLK_DAY] <= 0x00u)
+  if (clk_temp_buffer_date[CLK_day] <= 0x00u)
     {
-      clk_temp_buffer_date[CLK_DAY] = 0x00u;
+      clk_temp_buffer_date[CLK_day] = 0x00u;
     }
-  else if (clk_temp_buffer_date[CLK_DAY] >= 30)
+  else if (clk_temp_buffer_date[CLK_day] >= 30)
     {
-      clk_temp_buffer_date[CLK_DAY] = 30;
+      clk_temp_buffer_date[CLK_day] = 30;
     }
 
-  APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_DAY], 6);
+  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Enter Day:%02d   ", clk_temp_buffer_date[CLK_day]);
+  local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+  strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+  local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+  APPIFEF_Send_LCD(&local_LCD_str);
 }
 
 static void CLKLF_Set_Month(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
+  LCD_Out_Buffer_T local_LCD_str;
+
   if (Incrementing_Requested_Requested == button_increment->push_buttonuest_u16 && button_pushed == button_increment->button_status)
     {
       APPIFEF_Set_Button_Status(Increment, button_proccessed);
       APPIFEF_Clear_push_button(Increment);
-      clk_temp_buffer_date[CLK_MOUNTH] += CLK_UNIT_ONE;
+      clk_temp_buffer_date[CLK_month] += CLK_UNIT_ONE;
     }
   else if (Decrementing_Requested_Requested == button_decrement->push_buttonuest_u16 && button_pushed == button_decrement->button_status)
     {
-      clk_temp_buffer_date[CLK_MOUNTH] -= CLK_UNIT_ONE;
+      clk_temp_buffer_date[CLK_month] -= CLK_UNIT_ONE;
       APPIFEF_Set_Button_Status(Decrement, button_proccessed);
       APPIFEF_Clear_push_button(Decrement);
     }
 
-  if (clk_temp_buffer_date[CLK_MOUNTH] <= 0x00u)
+  if (clk_temp_buffer_date[CLK_month] <= 0x00u)
     {
-      clk_temp_buffer_date[CLK_MOUNTH] = 0x00u;
+      clk_temp_buffer_date[CLK_month] = 0x00u;
     }
-  else if (clk_temp_buffer_date[CLK_MOUNTH] >= 12u)
+  else if (clk_temp_buffer_date[CLK_month] >= 12u)
     {
-      clk_temp_buffer_date[CLK_MOUNTH] = 12u;
+      clk_temp_buffer_date[CLK_month] = 12u;
     }
 
-  APPIFEF_Send_Setting(clk_temp_buffer_date[CLK_MOUNTH], 7);
+  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Enter Month:%02d ", clk_temp_buffer_date[CLK_month]);
+  local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+  strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+  local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+  APPIFEF_Send_LCD(&local_LCD_str);
 }
 
+
+static void CLKF_Print_Time_Date(void)
+{
+  uint8_t am_pm_txt[3];
+  LCD_Out_Buffer_T local_LCD_str;
+
+  //reading time from CLK SW component
+  ReadTime(clk_temp_buffer_time);
+
+  //reading date from RTC SW component
+  ReadDate(clk_temp_buffer_date);
+
+  //sending time to Appitf SW component
+  if(0u  == clk_temp_buffer_time[CLK_time_format])
+    {
+      strcpy((char *)am_pm_txt, "am");
+    }
+  else
+    {
+      strcpy((char *)am_pm_txt, "pm");
+    }
+  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "%02d:%02d:%02d %s", clk_temp_buffer_time[CLK_hours], clk_temp_buffer_time[CLK_minutes], clk_temp_buffer_time[CLK_seconds], (char *)am_pm_txt);
+  local_LCD_str.Up_Row_Buffer.colum_position = Column_4;
+
+  sprintf((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "%02d/%02d/%4d", clk_temp_buffer_date[CLK_month], clk_temp_buffer_date[CLK_day], YEAR_2000 + clk_temp_buffer_date[CLK_year]);
+  local_LCD_str.Down_Row_Buffer.colum_position = Column_4;
+
+  //sending date to Appitf SW component
+  APPIFEF_Send_LCD(&local_LCD_str);
+}
 
 /*************** END OF FUNCTIONS ***************************************************************************/

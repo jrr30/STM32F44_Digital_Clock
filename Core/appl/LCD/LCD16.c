@@ -212,21 +212,15 @@ void Home(void)
 	delay_us(2000);
 }
 
-void LCDEF_frist_Row(void)
+void LCDEF_Print_Str(void)
 {
-  S_Texts_LCD_Status local_buffer_firts_row;
+  LCD_Out_Buffer_T local_buffef;
 
-  APPIFEF_Get_Time(&local_buffer_firts_row);
-  Set_Cursor(local_buffer_firts_row.row_position, local_buffer_firts_row.colum_position);
-  print_string(local_buffer_firts_row.appif_out_buffer_u8);
-}
+  APPIFEF_Get_OutBuffer(&local_buffef);
 
+  Set_Cursor(Row_1, local_buffef.Up_Row_Buffer.colum_position);
+  print_string(local_buffef.Up_Row_Buffer.appif_out_buffer_u8);
 
-void LCDEF_Second_Row(void)
-{
-  S_Texts_LCD_Status local_buffer_second_row;
-
-  APPIFEF_Get_Date(&local_buffer_second_row);
-  Set_Cursor(local_buffer_second_row.row_position, local_buffer_second_row.colum_position);
-  print_string(local_buffer_second_row.appif_out_buffer_u8);
+  Set_Cursor(Row_2, local_buffef.Down_Row_Buffer.colum_position);
+  print_string(local_buffef.Down_Row_Buffer.appif_out_buffer_u8);
 }

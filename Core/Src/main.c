@@ -78,11 +78,6 @@ static void MX_I2C3_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
-const uint8_t text[] = "Setting Date";
-G_Flags_T G_Status_F;
-G_Variables_T G_Variables;
-uint8_t global_counter = 0x00u;
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -97,10 +92,7 @@ uint8_t global_counter = 0x00u;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	G_Status_F.Setting_Time_Date = ZERO_VALUE;
-	G_Status_F.shifting_parameter = ONE_VALUE;
 
-	G_Variables.counter_us_debound = ZERO_VALUE;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -134,7 +126,7 @@ int main(void)
   Init_digital_input();
   APPIFEF_Init();
 
-  SEGGER_SYSVIEW_Conf();
+//  SEGGER_SYSVIEW_Conf();
 
   Task_Generation();
   vTaskStartScheduler();
@@ -170,11 +162,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {

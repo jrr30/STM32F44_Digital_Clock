@@ -25,34 +25,42 @@
 #define APPIF_MOUNTH (0x01u)
 #define APPIF_DAY    (0x02u)
 
-#define APPIF_MAX_MESSAGES (13u)
 /*User typedef------------------------------------------*/
 
+typedef enum APPIF_Date_info_t
+{
+	APPIF_time_txt,
+	APPIF_date_txt,
+	APPIF_setting_Enter_txt,
+	APPIF_set_hours_txt,
+	APPIF_set_minutes_txt,
+	APPIF_set_time_format_txt,
+	APPIF_set_day_txt,
+	APPIF_set_month_txt,
+	APPIF_set_year_txt,
+	APPIF_set_empty_txt,
+	APPIF_saving_settings_txt,
+	APPIF_working_on_txt,
 
+	APPIF_Txt_Max
+}APPIF_Date_info_T;
+
+typedef enum APPIF_time_info_t
+{
+        APPIF_hours,
+	APPIF_minutes,
+	APPIF_seconds,
+	APPIF_time_format,
+
+	APPIF_time_info_Max
+}APPIF_time_info_T;
 /*Private variables definition--------------------------*/
 
 //static volatile uint16_t push_button_status_u16[Source_max];
 
 static button_descriptor push_button_status_u16[Source_max];
 
-static S_Texts_LCD_Status appif_uprow_buffer_LCD;
-static S_Texts_LCD_Status appif_downrow_buffer_LCD;
-
-static S_Print_Texts_LCD menu_texts_formart_s[APPIF_MAX_MESSAGES] =
-    {
-	{Row_1, Column_4, (unsigned char *)"%02d:%02d:%02d"  }, //Time message      Index -> 0
-	{Row_2, Column_4, (unsigned char *)"%02d/%02d/%4d"   }, //Date message      Index -> 1
-	{Row_1, Column_1, (unsigned char *)"Settings        "}, //Settings Enter    Index -> 2
-	{Row_1, Column_1, (unsigned char *)"Enter Hour:%02d "}, //Set Hours         Index -> 3
-	{Row_1, Column_1, (unsigned char *)"Enter Min:%02d  "}, //Set Minutes       Index -> 4
-	{Row_1, Column_1, (unsigned char *)"Enter Sec:%02d  "}, //Set Seconds       Index -> 5
-	{Row_1, Column_1, (unsigned char *)"Enter Day:%02d   "}, //Set Day          Index -> 6
-	{Row_1, Column_1, (unsigned char *)"Enter Month:%02d  "}, //Set Month       Index -> 7
-	{Row_1, Column_1, (unsigned char *)"Enter Year:20%02d"}, //Set Year         Index -> 8
-	{Row_2, Column_1, (unsigned char *)"                "}, //Empty Row         Index -> 9
-	{Row_1, Column_1, (unsigned char *)"Saving Settings "}, //Set Year          Index -> 10
-	{Row_1, Column_1, (unsigned char *)"Working on it :)"}, //Alarm String      Index -> 11
-    };
+static LCD_Out_Buffer_T APPIF_LCD_Out_Buffer;
 
 static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source source_e);
 
@@ -138,15 +146,13 @@ void APPIFEF_Init(void)
   push_button_status_u16[Alarm].push_buttonuest_u16 = Alarm_idle_Requested;
   push_button_status_u16[Alarm].button_status = button_idle;
 
-  appif_uprow_buffer_LCD.colum_position = INTF_VALUE;
-  appif_uprow_buffer_LCD.row_position = INTF_VALUE;
-  memset (appif_uprow_buffer_LCD.appif_out_buffer_u8, INTF_VALUE,
-	  sizeof(appif_uprow_buffer_LCD.appif_out_buffer_u8));
+  APPIF_LCD_Out_Buffer.Up_Row_Buffer.colum_position = INTF_VALUE;
+  memset (APPIF_LCD_Out_Buffer.Up_Row_Buffer.appif_out_buffer_u8, INTF_VALUE,
+	  sizeof(APPIF_LCD_Out_Buffer.Up_Row_Buffer.appif_out_buffer_u8));
 
-  appif_downrow_buffer_LCD.colum_position = INTF_VALUE;
-  appif_downrow_buffer_LCD.row_position = INTF_VALUE;
-  memset (appif_downrow_buffer_LCD.appif_out_buffer_u8, INTF_VALUE,
-	  sizeof(appif_downrow_buffer_LCD.appif_out_buffer_u8));
+  APPIF_LCD_Out_Buffer.Down_Row_Buffer.colum_position = INTF_VALUE;
+  memset (APPIF_LCD_Out_Buffer.Down_Row_Buffer.appif_out_buffer_u8, INTF_VALUE,
+	  sizeof(APPIF_LCD_Out_Buffer.Down_Row_Buffer.appif_out_buffer_u8));
 }
 
 void APPIFEF_Get_Button_Req(Input_Source source_e, button_descriptor * out_data)
@@ -173,89 +179,29 @@ void APPIFEF_Clear_push_button(Input_Source source_e)
     }
 }
 
-void APPIFEF_Get_Time(S_Texts_LCD_Status * outbuffer_pS)
+void APPIFEF_Get_OutBuffer(LCD_Out_Buffer_T * prt_outbuffer)
 {
-  memcpy(outbuffer_pS, &appif_uprow_buffer_LCD, sizeof(appif_uprow_buffer_LCD));
+  memcpy(prt_outbuffer, &APPIF_LCD_Out_Buffer, sizeof(APPIF_LCD_Out_Buffer));
 }
 
-void APPIFEF_Get_Date(S_Texts_LCD_Status * outbuffer_pS)
+
+void APPIFEF_Send_LCD(LCD_Out_Buffer_T * ptr_str)
 {
-  memcpy(outbuffer_pS, &appif_downrow_buffer_LCD, sizeof(appif_downrow_buffer_LCD));
-}
+  memcpy( APPIF_LCD_Out_Buffer.Up_Row_Buffer.appif_out_buffer_u8, ptr_str->Up_Row_Buffer.appif_out_buffer_u8, sizeof(APPIF_LCD_Out_Buffer.Up_Row_Buffer.appif_out_buffer_u8));
+  APPIF_LCD_Out_Buffer.Up_Row_Buffer.colum_position = ptr_str->Up_Row_Buffer.colum_position;
 
-void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8)
-{
-    sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[0].texts_lcd, time_buffer_pu8[APPIF_HRS], time_buffer_pu8[APPIF_MIN], time_buffer_pu8[APPIF_SEC]);
-    appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[0].colum_position;
-    appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[0].row_position;
-
-}
-
-void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8)
-{
-  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[1].texts_lcd, date_buffer_pu8[APPIF_DAY], date_buffer_pu8[APPIF_MOUNTH], 2000 + date_buffer_pu8[APPIF_YEAR]);
-  appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[1].colum_position;
-  appif_downrow_buffer_LCD.row_position = menu_texts_formart_s[1].row_position;
-}
-
-void APPIFEF_Send_String_Settings(void)
-{
-  //Sending Settings on screen
-  sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[2].texts_lcd);
-  appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[2].colum_position;
-  appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[2].row_position;
-
-  //Clearing low row
-  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[9].texts_lcd);
-  appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[9].colum_position;
-  appif_downrow_buffer_LCD.row_position = menu_texts_formart_s[9].row_position;
-}
-
-void APPIFEF_Send_String_Alarm(void)
-{
-  //Sending Settings on screen
-  sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[11].texts_lcd);
-  appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[11].colum_position;
-  appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[11].row_position;
-
-  //Clearing low row
-  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[9].texts_lcd);
-  appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[9].colum_position;
-  appif_downrow_buffer_LCD.row_position = menu_texts_formart_s[9].row_position;
-}
-
-void APPIFEF_Send_String_Saving(void)
-{
-  //Sending Settings on screen
-  sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[10].texts_lcd);
-  appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[2].colum_position;
-  appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[2].row_position;
-
-  //Clearing low row
-  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[9].texts_lcd);
-  appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[9].colum_position;
-  appif_downrow_buffer_LCD.row_position = menu_texts_formart_s[9].row_position;
-}
-
-void APPIFEF_Send_Setting(uint8_t date_buffer_pu8, uint8_t index_string_u8)
-{
-  //Sending Settings on screen
-
-  sprintf((char *)appif_uprow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[index_string_u8].texts_lcd, date_buffer_pu8);
-  appif_uprow_buffer_LCD.colum_position = menu_texts_formart_s[index_string_u8].colum_position;
-  appif_uprow_buffer_LCD.row_position = menu_texts_formart_s[index_string_u8].row_position;
-
-  //Clearing low row
-  sprintf((char *)appif_downrow_buffer_LCD.appif_out_buffer_u8, (char *)menu_texts_formart_s[9].texts_lcd);
-  appif_downrow_buffer_LCD.colum_position = menu_texts_formart_s[9].colum_position;
-  appif_downrow_buffer_LCD.row_position = menu_texts_formart_s[9].row_position;
+  memcpy(APPIF_LCD_Out_Buffer.Down_Row_Buffer.appif_out_buffer_u8, ptr_str->Down_Row_Buffer.appif_out_buffer_u8, sizeof(APPIF_LCD_Out_Buffer.Down_Row_Buffer.appif_out_buffer_u8));
+  APPIF_LCD_Out_Buffer.Down_Row_Buffer.colum_position = ptr_str->Down_Row_Buffer.colum_position;
 }
 
 
 void APPIFEF_Clear(void)
 {
+  memset(APPIF_LCD_Out_Buffer.Up_Row_Buffer.appif_out_buffer_u8, ' ', sizeof(APPIF_LCD_Out_Buffer.Up_Row_Buffer.appif_out_buffer_u8));
+  memset(APPIF_LCD_Out_Buffer.Down_Row_Buffer.appif_out_buffer_u8, ' ', sizeof(APPIF_LCD_Out_Buffer.Up_Row_Buffer.appif_out_buffer_u8));
   Clear();
 }
+
 
 
 

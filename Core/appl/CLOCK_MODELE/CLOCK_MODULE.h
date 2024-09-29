@@ -44,7 +44,24 @@
 /******************************************************************************
 * Typedefs
 *******************************************************************************/
+typedef enum CLK_time_info_t
+{
+	CLK_hours,
+	CLK_minutes,
+	CLK_seconds,
+	CLK_time_format,
 
+	CLK_time_info_Max
+}CLK_time_info_T;
+
+typedef enum CLK_Date_info_t
+{
+	CLK_year,
+	CLK_month,
+	CLK_day,
+
+	CLK_date_info_Max
+}CLK_Date_info_T;
 
 /******************************************************************************
 * Variables
