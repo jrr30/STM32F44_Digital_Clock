@@ -13,6 +13,7 @@
 
 /*Macros declaration------------------------------------*/
 #define APPIF_MAX_LCD_DIGIT   (17u)
+
 /*User typedef------------------------------------------*/
 
 typedef enum button_status_TAG
@@ -73,14 +74,23 @@ typedef struct Print_Texts_LCD_TAG
 }S_Print_Texts_LCD;
 
 
-typedef struct Texts_LCD_Status_TAG
+typedef struct Texts_LCD_Container_t
 {
 
-  Row_lcd row_position;
   Column_lcd colum_position;
   uint8_t appif_out_buffer_u8[APPIF_MAX_LCD_DIGIT];
 
-}S_Texts_LCD_Status;
+}S_Texts_LCD_Container_T;
+
+typedef struct LCD_Out_Buffer_t
+{
+
+  S_Texts_LCD_Container_T Up_Row_Buffer;
+  S_Texts_LCD_Container_T Down_Row_Buffer;
+
+}LCD_Out_Buffer_T;
+
+
 
 typedef struct
 {
@@ -97,18 +107,11 @@ void APPIFEF_Get_Button_Req(Input_Source source_e, button_descriptor * out_data)
 void APPIFEF_Set_Button_Status(Input_Source source_e, button_status button_status_e);
 void APPIFEF_Clear_push_button(Input_Source source_e);
 
-void APPIFEF_Send_Time_Display(uint8_t * time_buffer_pu8);
-void APPIFEF_Send_Date_Display(uint8_t * date_buffer_pu8);
-
-void APPIFEF_Get_Time(S_Texts_LCD_Status * outbuffer_pS);
-void APPIFEF_Get_Date(S_Texts_LCD_Status * outbuffer_pS);
-
-void APPIFEF_Send_String_Settings(void);
-void APPIFEF_Send_String_Saving(void);
-void APPIFEF_Send_Setting(uint8_t  date_buffer_pu8, uint8_t index_string_u8);
-void APPIFEF_Send_String_Alarm(void);
+void APPIFEF_Get_OutBuffer(LCD_Out_Buffer_T * prt_outbuffer);
+void APPIFEF_Send_LCD(LCD_Out_Buffer_T * ptr_str);
 
 void APPIFEF_Clear(void);
+
 
 
 #endif /* APPL_INPUTIF_INPUTIF_H_ */

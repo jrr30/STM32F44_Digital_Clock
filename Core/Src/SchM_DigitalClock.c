@@ -152,10 +152,7 @@ void Task_500ms(void * parameters)
   xLastWakeTime = xTaskGetTickCount();
   for(;;)
     {
-
-      LCDEF_frist_Row();
-      LCDEF_Second_Row();
-
+      LCDEF_Print_Str();
       vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(500));
     }
 }

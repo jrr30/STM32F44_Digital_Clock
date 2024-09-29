@@ -126,7 +126,7 @@ int main(void)
   Init_digital_input();
   APPIFEF_Init();
 
-  SEGGER_SYSVIEW_Conf();
+//  SEGGER_SYSVIEW_Conf();
 
   Task_Generation();
   vTaskStartScheduler();

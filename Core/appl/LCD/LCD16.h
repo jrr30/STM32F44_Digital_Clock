@@ -126,8 +126,7 @@ void LCD_Config(void);
 void Clear(void);
 void Home(void);
 void print_string(uint8_t * lcd_str);
-void LCDEF_frist_Row(void);
-void LCDEF_Second_Row(void);
+void LCDEF_Print_Str(void);
 
 
 #endif /* APPL_LCD_LCD16_H_ */
