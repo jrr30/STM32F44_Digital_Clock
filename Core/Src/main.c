@@ -121,6 +121,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim5);
 
+
   LCD_Config();
 
   Init_digital_input();

@@ -4,7 +4,9 @@
  *  Created on: Sep 8, 2023
  *      Author: Jesus
  */
-
+ /**
+  * Datasheet https://www.vishay.com/docs/37484/lcd016n002bcfhet.pdf
+  * */
 
 #include "../appl/LCD/LCD16.h"
 #include "../appl/APPINTF/APPINTF.h"
@@ -12,8 +14,34 @@
 #include "stm32f4xx_hal.h"
 #include <main.h>
 
+typedef enum Row_Character_t
+{
+  Character_Row_0,
+  Character_Row_1,
+  Character_Row_2,
+  Character_Row_3,
+  Character_Row_4,
+  Character_Row_5,
+  Character_Row_6,
+  Character_Row_7,
+
+  Max_Character_Row
+}Row_Character_T;
+
 static void Write_Command(uint8_t com);
 static void Enable_Pulse(void);
+
+static uint8_t Bell_Custome_Character [Max_Character_Row] =
+    {
+	0b00100,
+	0b01110,
+	0b01110,
+	0b01110,
+	0b11111,
+	0b00000,
+	0b00100,
+	0b00000
+    };
 
 static void Enable_Pulse(void)
 {
@@ -99,6 +127,12 @@ static void Write_Command(uint8_t com)
   * @brief  Write character
   *
   * @note   This function is specific to write a single character in the display.
+  * 		Check Character Generator ROM Pattern table to see how Characters are display.
+  * 		E.g to display 0 (Ascii), we must tell to this function to write 0x30
+  * 		E.g if we want to display GCRAMM cero, we must sent 0x00 or 0x04
+  *
+  * 		If we send the command SET CGRAM Address first, we will write in the internal CGRAM memory.
+  * 		Then we can create the custome characters.
   *
   * @param  Command specifies the raw as single character
   * @retval None
@@ -119,6 +153,8 @@ void Write_Data(uint8_t data)
   */
 void LCD_Config(void)
 {
+	Row_Character_T iter = Character_Row_0;
+
 	delay_us(20000);
 	Write_Data_Command_GPIO(0x03u, COMMAND);
 	delay_us(7000);
@@ -141,6 +177,18 @@ void LCD_Config(void)
 	Write_Command(CURSOR_RETURN);
 	delay_us(2000);
 
+
+
+	Write_Command(SET_CGRAM_1);
+
+	for(iter = Character_Row_0; iter < Max_Character_Row;iter++)
+	  {
+	    Write_Data(Bell_Custome_Character[iter]);
+	  }
+
+	LCDEF_Print_Custome_Char(Char_Bell_Custome, Row_2, Column_1);
+
+
 }
 
 /**
@@ -152,13 +200,16 @@ void LCD_Config(void)
   */
 void print_string(uint8_t * lcd_str)
 {
-	  uint8_t iter = 0;
+  if(NULL != lcd_str)
+    {
+      uint8_t iter = 0;
 
-	  while(lcd_str[iter] != '\0')
-	  {
-		  Write_Data((uint8_t)lcd_str[iter]);
-		  iter++;
-	  }
+      while (lcd_str[iter] != '\0')
+        {
+          Write_Data ((uint8_t) lcd_str[iter]);
+          iter++;
+        }
+    }
 }
 
 /**
@@ -223,4 +274,16 @@ void LCDEF_Print_Str(void)
 
   Set_Cursor(Row_2, local_buffef.Down_Row_Buffer.colum_position);
   print_string(local_buffef.Down_Row_Buffer.appif_out_buffer_u8);
+}
+
+
+void LCDEF_Print_Custome_Char(Char_Custome_T char_number, Row_lcd row, Column_lcd column)
+{
+
+	Set_Cursor(row,column);
+
+	if(Char_Bell_Custome == char_number )
+	  {
+	    Write_Data(DISPLAY_CGRAM_1);
+	  }
 }

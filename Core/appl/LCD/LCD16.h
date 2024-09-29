@@ -93,7 +93,25 @@ extern void delay_us(uint32_t microseconds);
 #define M5_8_Font 0x20u
 #define M5_11_Font 0x24u
 
-typedef enum
+#define SET_CGRAM_1 0x40u
+#define SET_CGRAM_2 0x48u
+#define SET_CGRAM_3 0x56u
+#define SET_CGRAM_4 0x64u
+#define SET_CGRAM_5 0x72u
+#define SET_CGRAM_6 0x80u
+#define SET_CGRAM_7 0x88u
+#define SET_CGRAM_8 0x96u
+
+#define DISPLAY_CGRAM_1 0x00u
+#define DISPLAY_CGRAM_2 0x01u
+#define DISPLAY_CGRAM_3 0x02u
+#define DISPLAY_CGRAM_4 0x03u
+#define DISPLAY_CGRAM_5 0x04u
+#define DISPLAY_CGRAM_6 0x05u
+#define DISPLAY_CGRAM_7 0x06u
+#define DISPLAY_CGRAM_8 0x07u
+
+typedef enum Column_lcd_t
 {
 	Column_1,
 	Column_2,
@@ -113,11 +131,25 @@ typedef enum
 	Column_16
 } Column_lcd;
 
-typedef enum
+typedef enum Row_lc_t
 {
 	Row_1,
 	Row_2
 } Row_lcd;
+
+typedef enum Char_Custome_t
+{
+	Char_Bell_Custome,
+	Char_Empty1_Custome,
+	Char_Empty2_Custome,
+	Char_Empty3_Custome,
+	Char_Empty4_Custome,
+	Char_Empty5_Custome,
+	Char_Empty6_Custome,
+	Char_Empty7_Custome,
+
+	Max_Char_Custome,
+} Char_Custome_T;
 
 /*Public functions-----------------------------------*/
 void Write_Data(uint8_t data);
@@ -127,6 +159,7 @@ void Clear(void);
 void Home(void);
 void print_string(uint8_t * lcd_str);
 void LCDEF_Print_Str(void);
+void LCDEF_Print_Custome_Char(Char_Custome_T char_number, Row_lcd row, Column_lcd column);
 
 
 #endif /* APPL_LCD_LCD16_H_ */
