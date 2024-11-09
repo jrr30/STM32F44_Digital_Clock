@@ -50,18 +50,28 @@ typedef enum CLK_time_info_t
 	CLK_minutes,
 	CLK_seconds,
 	CLK_time_format,
-
-	CLK_time_info_Max
-}CLK_time_info_T;
-
-typedef enum CLK_Date_info_t
-{
 	CLK_year,
 	CLK_month,
 	CLK_day,
 
-	CLK_date_info_Max
-}CLK_Date_info_T;
+	CLK_timeDate_Max
+}CLK_time_info_T;
+
+typedef enum CLK_time_Alarm_info_t
+{
+	CLK_Alarm_hours,
+	CLK_Alarm_minutes,
+	CLK_Alarm_format,
+	CLK_Alarm_Monday,
+	CLK_Alarm_Tuesday,
+	CLK_Alarm_Wensday,
+	CLK_Alarm_Thursday,
+	CLK_Alarm_Friday,
+	CLK_Alarm_Saturday,
+	CLK_Alarm_Sunday,
+
+	CLK_Alram_info_Max
+}CLK_time_Alarm_info_T;
 
 /******************************************************************************
 * Variables
@@ -73,6 +83,7 @@ typedef enum CLK_Date_info_t
 *******************************************************************************/
 
 void FSMEF_Clock_Thread(void);
+void FSMEF_Clock_Init(void);
 
 #endif
 /*** End of File **************************************************************/

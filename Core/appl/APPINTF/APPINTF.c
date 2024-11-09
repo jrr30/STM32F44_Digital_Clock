@@ -69,49 +69,53 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 
 	if(Increment == source_e && Input_high == status_e && (button_idle == push_button_status_u16[Increment].button_status || button_proccessed == push_button_status_u16[Increment].button_status ))
 	{
-	    push_button_status_u16[Increment].push_buttonuest_u16 <<= INTF_SHIFT_VALUE;
+	    push_button_status_u16[Increment].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 	    push_button_status_u16[Increment].button_status = button_pushed;
 
-		if(push_button_status_u16[Increment].push_buttonuest_u16 == Incrementing_max_status_Requested)
+		if(push_button_status_u16[Increment].push_button_action_u16 == Incrementing_max_status_Requested)
 		{
-		    push_button_status_u16[Increment].push_buttonuest_u16  = Incrementing_Idle_Requested;
+		    push_button_status_u16[Increment].push_button_action_u16  = Incrementing_Idle_Requested;
 			push_button_status_u16[Increment].button_status = button_idle;
 		}
 	}
 	else if(Decrement == source_e && Input_high == status_e && (button_idle == push_button_status_u16[Decrement].button_status || button_proccessed == push_button_status_u16[Decrement].button_status))
 	{
-	    push_button_status_u16[Decrement].push_buttonuest_u16 <<= INTF_SHIFT_VALUE;
+	    push_button_status_u16[Decrement].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 	    push_button_status_u16[Decrement].button_status = button_pushed;
 
-		if(push_button_status_u16[Decrement].push_buttonuest_u16 == Decrementing_max_status_Requested)
+		if(push_button_status_u16[Decrement].push_button_action_u16 == Decrementing_max_status_Requested)
 		{
-		    push_button_status_u16[Decrement].push_buttonuest_u16  = Decrementing_Idle_Requested;
+		    push_button_status_u16[Decrement].push_button_action_u16  = Decrementing_Idle_Requested;
 			push_button_status_u16[Decrement].button_status = button_idle;
 		}
 	}
 	else if(Set == source_e && Input_high == status_e && (button_idle == push_button_status_u16[Set].button_status || button_proccessed == push_button_status_u16[Set].button_status))
 	{
 
-		push_button_status_u16[Set].push_buttonuest_u16 <<= INTF_SHIFT_VALUE;
+		push_button_status_u16[Set].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 		push_button_status_u16[Set].button_status = button_pushed;
 
-		if(push_button_status_u16[Set].push_buttonuest_u16 == Setting_Exit_Requested)
+		if(push_button_status_u16[Set].push_button_action_u16 == Setting_Exit_Requested)
 		{
-		    push_button_status_u16[Set].push_buttonuest_u16  = Setting_Idle_Requested;
+		    push_button_status_u16[Set].push_button_action_u16  = Setting_Idle_Requested;
 			push_button_status_u16[Set].button_status = button_idle;
 		}
 	}
-	else if(Alarm == source_e && status_e == Input_high)
+	else if(Alarm == source_e && status_e == Input_high && (button_idle == push_button_status_u16[Alarm].button_status || button_proccessed == push_button_status_u16[Alarm].button_status))
 	{
 
-		push_button_status_u16[Alarm].push_buttonuest_u16 <<= INTF_SHIFT_VALUE;
-		push_button_status_u16[Alarm].button_status = button_pushed;
-
-		if(push_button_status_u16[Alarm].push_buttonuest_u16 == Alarm_max_Requested)
+		if(push_button_status_u16[Alarm].push_button_action_u16 == Alarm_Exit_Requested)
 		{
-		    push_button_status_u16[Alarm].push_buttonuest_u16  = Alarm_idle_Requested;
-			push_button_status_u16[Alarm].button_status = button_idle;
+		    push_button_status_u16[Alarm].push_button_action_u16  = Alarm_idle_Requested;
+		    push_button_status_u16[Alarm].button_status = button_idle;
 		}
+		else if(Alarm_Init_Requested == push_button_status_u16[Alarm].push_button_action_u16)
+		{
+		    push_button_status_u16[Alarm].push_button_action_u16 <<= INTF_SHIFT_VALUE;
+		}
+
+		push_button_status_u16[Alarm].push_button_action_u16 <<= INTF_SHIFT_VALUE;
+		push_button_status_u16[Alarm].button_status = button_pushed;
 	}
 
 }
@@ -134,16 +138,16 @@ void APPIFEF_Thread(void)
 void APPIFEF_Init(void)
 {
 
-  push_button_status_u16[Increment].push_buttonuest_u16 = Incrementing_Idle_Requested;
+  push_button_status_u16[Increment].push_button_action_u16 = Incrementing_Idle_Requested;
   push_button_status_u16[Increment].button_status = button_idle;
 
-  push_button_status_u16[Decrement].push_buttonuest_u16 = Decrementing_Idle_Requested;
+  push_button_status_u16[Decrement].push_button_action_u16 = Decrementing_Idle_Requested;
   push_button_status_u16[Decrement].button_status = button_idle;
 
-  push_button_status_u16[Set].push_buttonuest_u16 = Setting_Idle_Requested;
+  push_button_status_u16[Set].push_button_action_u16 = Setting_Idle_Requested;
   push_button_status_u16[Set].button_status = button_idle;
 
-  push_button_status_u16[Alarm].push_buttonuest_u16 = Alarm_idle_Requested;
+  push_button_status_u16[Alarm].push_button_action_u16 = Alarm_idle_Requested;
   push_button_status_u16[Alarm].button_status = button_idle;
 
   APPIF_LCD_Out_Buffer.Up_Row_Buffer.colum_position = INTF_VALUE;
@@ -158,24 +162,28 @@ void APPIFEF_Init(void)
 void APPIFEF_Get_Button_Req(Input_Source source_e, button_descriptor * out_data)
 {
   out_data->button_status = push_button_status_u16[source_e].button_status;
-  out_data->push_buttonuest_u16 = push_button_status_u16[source_e].push_buttonuest_u16;
+  out_data->push_button_action_u16 = push_button_status_u16[source_e].push_button_action_u16;
 }
 
 void APPIFEF_Set_Button_Status(Input_Source source_e, button_status button_status_e)
 {
   push_button_status_u16[source_e].button_status = button_status_e;
-  buzzer_beep_on();
+//  buzzer_beep_on();
 }
 
 void APPIFEF_Clear_push_button(Input_Source source_e)
 {
   if(Increment == source_e)
     {
-      push_button_status_u16[Increment].push_buttonuest_u16 = Incrementing_Idle_Requested;
+      push_button_status_u16[Increment].push_button_action_u16 = Incrementing_Idle_Requested;
     }
   else if(Decrement == source_e)
     {
-      push_button_status_u16[Decrement].push_buttonuest_u16 = Decrementing_Idle_Requested;
+      push_button_status_u16[Decrement].push_button_action_u16 = Decrementing_Idle_Requested;
+    }
+  else if(Alarm == source_e)
+    {
+      push_button_status_u16[Alarm].push_button_action_u16 = Alarm_idle_Requested;
     }
 }
 

@@ -25,6 +25,10 @@ typedef enum button_status_TAG
   max_button
 }button_status;
 
+/**
+ * This is the current action that the button is performing
+ * It is intended for set button
+ */
 typedef enum Button_Set_Requests_TAG
 {
 	Setting_Idle_Requested   = 0x0001,
@@ -40,15 +44,33 @@ typedef enum Button_Set_Requests_TAG
 	Set_max_status_Requested = 0x0200,
 }E_Button_Set_Requests;
 
+/**
+ * This is the current action that the button is performing
+ * It is intended for alarm button
+ */
 typedef enum Button_Alarm_Requests_TAG
 {
-	Alarm_idle_Requested  = 0x0001,
-	Alarm_Ente_Requested  = 0x0002,
-	Alarm_Exit_Requested  = 0x0004,
+	Alarm_idle_Requested     = 0x0001,
+	Alarm_Init_Requested     = 0x0002,
+	Alarm_Hour_Requested     = 0x0004,
+	Alarm_Min_Requested      = 0x0008,
+	Alarm_Format_Requested   = 0x0010,
+	Alarm_Monday_Requested   = 0x0020,
+	Alarm_Tusday_Requested   = 0x0040,
+	Alarm_Wensday_Requested  = 0x0080,
+	Alarm_Thursday_Requested = 0x0100,
+	Alarm_Friday_Requested   = 0x0200,
+	Alarm_Saturday_Requested = 0x0400,
+	Alarm_Sunday_Requested   = 0x0800,
+	Alarm_Exit_Requested     = 0x1000,
 
-	Alarm_max_Requested   = 0x0008,
+	Alarm_max_Requested      = 0x2000,
 }E_Button_Alarm_Requests;
 
+/**
+ * This is the current action that the button is performing
+ * It is intended for increment button
+ */
 typedef enum Button_Increment_Requests_TAG
 {
 	Incrementing_Idle_Requested       = 0x0001,
@@ -57,6 +79,10 @@ typedef enum Button_Increment_Requests_TAG
 	Incrementing_max_status_Requested = 0x0004,
 }E_Button_Increment_Requests;
 
+/**
+ * This is the current action that the button is performing
+ * It is intended for decrementing button
+ */
 typedef enum Button_Decrement_Requests_TAG
 {
 	Decrementing_Idle_Requested          = 0x0001,
@@ -94,7 +120,7 @@ typedef struct LCD_Out_Buffer_t
 
 typedef struct
 {
-  uint16_t push_buttonuest_u16;
+  uint16_t push_button_action_u16;
   button_status button_status;
 }button_descriptor;
 

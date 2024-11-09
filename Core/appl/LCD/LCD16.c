@@ -180,15 +180,10 @@ void LCD_Config(void)
 
 
 	Write_Command(SET_CGRAM_1);
-
 	for(iter = Character_Row_0; iter < Max_Character_Row;iter++)
 	  {
 	    Write_Data(Bell_Custome_Character[iter]);
 	  }
-
-	LCDEF_Print_Custome_Char(Char_Bell_Custome, Row_2, Column_1);
-
-
 }
 
 /**
