@@ -32,16 +32,17 @@ typedef enum button_status_TAG
 typedef enum Button_Set_Requests_TAG
 {
 	Setting_Idle_Requested   = 0x0001,
-	Setting_Enter_Requested  = 0x0002,
+	Setting_Init_Requested   = 0x0002,
 	Setting_Hour_Requested   = 0x0004,
 	Setting_Min_Requested    = 0x0008,
-	Setting_Sec_Requested    = 0x0010,
+	Setting_Format_Requested = 0x0010,
 	Setting_Year_Requested   = 0x0020,
 	Setting_Month_Requested  = 0x0040,
 	Setting_Day_Requested    = 0x0080,
 	Setting_Exit_Requested   = 0x0100,
 
 	Set_max_status_Requested = 0x0200,
+
 }E_Button_Set_Requests;
 
 /**

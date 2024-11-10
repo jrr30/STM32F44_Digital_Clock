@@ -45,9 +45,9 @@ static void BuzzerTimerCallback( TimerHandle_t xTimer);
 void Task_Generation(void)
 {
 
-	xTaskCreate(Task_50ms,   "50ms", 200, NULL, 1, &Task_50ms_Handler );
+	xTaskCreate(Task_50ms,   "50ms", 150, NULL, 1, &Task_50ms_Handler );
 	xTaskCreate(Task_200ms, "200ms", 200, NULL, 1, &Task_200ms_Handler);
-	xTaskCreate(Task_400ms, "400ms", 500, NULL, 2, &Task_400ms_Handler);
+	xTaskCreate(Task_400ms, "400ms", 550, NULL, 2, &Task_400ms_Handler);
 	xTaskCreate(Task_500ms, "500ms", 200, NULL, 3, &Task_500ms_Handler);
 
 	buzzer_timer = xTimerCreate("Buzzer_Timer", pdMS_TO_TICKS(BUZZER_TIME_ON), pdFALSE, ( void * ) 0, BuzzerTimerCallback);

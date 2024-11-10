@@ -91,19 +91,27 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 	}
 	else if(Set == source_e && Input_high == status_e && (button_idle == push_button_status_u16[Set].button_status || button_proccessed == push_button_status_u16[Set].button_status))
 	{
-
-		push_button_status_u16[Set].push_button_action_u16 <<= INTF_SHIFT_VALUE;
-		push_button_status_u16[Set].button_status = button_pushed;
-
+	    if(Alarm_idle_Requested == push_button_status_u16[Alarm].push_button_action_u16  )
+	      {
 		if(push_button_status_u16[Set].push_button_action_u16 == Setting_Exit_Requested)
 		{
 		    push_button_status_u16[Set].push_button_action_u16  = Setting_Idle_Requested;
-			push_button_status_u16[Set].button_status = button_idle;
+		    push_button_status_u16[Set].button_status = button_idle;
 		}
+		else if(Setting_Init_Requested == push_button_status_u16[Set].push_button_action_u16)
+		{
+		    push_button_status_u16[Set].push_button_action_u16 <<= INTF_SHIFT_VALUE;
+		}
+
+		push_button_status_u16[Set].push_button_action_u16 <<= INTF_SHIFT_VALUE;
+		push_button_status_u16[Set].button_status = button_pushed;
+	      }
+
 	}
 	else if(Alarm == source_e && status_e == Input_high && (button_idle == push_button_status_u16[Alarm].button_status || button_proccessed == push_button_status_u16[Alarm].button_status))
 	{
-
+	    if(Setting_Idle_Requested == push_button_status_u16[Set].push_button_action_u16)
+	      {
 		if(push_button_status_u16[Alarm].push_button_action_u16 == Alarm_Exit_Requested)
 		{
 		    push_button_status_u16[Alarm].push_button_action_u16  = Alarm_idle_Requested;
@@ -116,6 +124,7 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 
 		push_button_status_u16[Alarm].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 		push_button_status_u16[Alarm].button_status = button_pushed;
+	      }
 	}
 
 }
@@ -184,6 +193,10 @@ void APPIFEF_Clear_push_button(Input_Source source_e)
   else if(Alarm == source_e)
     {
       push_button_status_u16[Alarm].push_button_action_u16 = Alarm_idle_Requested;
+    }
+  else
+    {
+      push_button_status_u16[Set].push_button_action_u16 = Setting_Idle_Requested;
     }
 }
 

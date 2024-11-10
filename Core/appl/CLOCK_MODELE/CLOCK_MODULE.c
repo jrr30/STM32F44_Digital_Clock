@@ -65,6 +65,16 @@
   ENTRY(State_Set_Days, Alarm_Week_Days)\
   ENTRY(State_Exit_Alarm, Alarm_Set_Exit)\
 
+#define TIMEDATE_STATE_TABLE \
+  ENTRY(State_Init_TimeDate, TimeDate_Set_Init)\
+  ENTRY(State_Set_Hr_TimeDate,TimeDate_Set_Hrs)\
+  ENTRY(State_Set_Mn_TimeDate, TimeDate_Set_Mn)\
+  ENTRY(State_Set_Time_Format_TimeDate, TimeDate_Set_Format)\
+  ENTRY(State_Set_year_TimeDate, TimeDate_Set_Year)\
+  ENTRY(State_Set_month_TimeDate, TimeDate_Set_Month)\
+  ENTRY(State_Set_day_TimeDate, TimeDate_Set_Day)\
+  ENTRY(State_Exit_TimeDate, TimeDate_Set_Exit)\
+
 
 /******************************************************************************
 * Module Typedefs
@@ -78,19 +88,6 @@ typedef enum main_clock_TAG
 
 }E_main_clock_states;
 
-typedef enum setting_menu_TAG
-{
-  setting_init,
-  hour_setting,
-  min_setting,
-  time_formart_setting,
-  year_setting,
-  month_setting,
-  day_setting,
-  exit_setting
-
-}E_setting_menu_states;
-
 typedef enum alarm_availability_TAG
 {
 
@@ -98,6 +95,15 @@ typedef enum alarm_availability_TAG
   alarm_disable = 0xB0u
 
 }E_alarm_availability;
+
+typedef enum setting_menu_TAG
+{
+#define ENTRY(a,b) a,
+  TIMEDATE_STATE_TABLE
+#undef ENTRY
+
+  max_state_TimeDate
+}E_setting_menu_states;
 
 typedef enum alarm_setttings_states_t
 {
@@ -109,10 +115,13 @@ typedef enum alarm_setttings_states_t
   max_state_alarm
 }E_alarm_setttings_states_T;
 
-typedef void (*Alarm_Funtion_ptr )(button_descriptor * button_increment, button_descriptor * button_decrement);
 
 #define ENTRY(a,b) static void b(button_descriptor * button_increment, button_descriptor * button_decrement);
   ALARM_STATE_TABLE
+#undef ENTRY
+
+#define ENTRY(a,b) static void b(button_descriptor * button_increment, button_descriptor * button_decrement);
+  TIMEDATE_STATE_TABLE
 #undef ENTRY
 
 
@@ -121,7 +130,7 @@ typedef void (*Alarm_Funtion_ptr )(button_descriptor * button_increment, button_
 * Module Variable Definitions
 *******************************************************************************/
 E_main_clock_states main_clock_state_e = init;
-E_setting_menu_states settings_menu_state_e = setting_init;
+E_setting_menu_states settings_menu_state_e = State_Init_TimeDate;
 E_alarm_setttings_states_T alarm_settings_state_e = State_Init_Alarm;
 uint8_t delay_state = 0x00u;
 
@@ -148,15 +157,9 @@ static uint16_t clk_translation_action_buffer_alarm[CLK_Alram_info_Max] =
 * Function Prototypes
 *******************************************************************************/
 static void FSMLF_Menu_Config(void);
-static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descriptor * button_decrement);
-static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descriptor * button_decrement);
-static void CLKLF_Set_Time_Format(button_descriptor * button_increment, button_descriptor * button_decrement);
-static void CLKLF_Set_Year(button_descriptor * button_increment, button_descriptor * button_decrement);
-static void CLKLF_Set_Day(button_descriptor * button_increment, button_descriptor * button_decrement);
-static void CLKLF_Set_Month(button_descriptor * button_increment, button_descriptor * button_decrement);
-static void CLKF_Print_Time_Date(void);
-
 static void FSMLF_Alarm_Menu_Config(void);
+
+static void CLKF_Print_Time_Date(void);
 
 /******************************************************************************
 * Function Definitions
@@ -207,6 +210,7 @@ void FSMEF_Clock_Thread(void)
   switch(main_clock_state_e)
   {
     case init:
+
       main_clock_state_e = print;
 
       break;
@@ -214,11 +218,9 @@ void FSMEF_Clock_Thread(void)
 
       CLKF_Print_Time_Date();
 
-      if(Setting_Enter_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+      if(Setting_Init_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
 	{
 	  main_clock_state_e = set_time;
-	  settings_menu_state_e = setting_init;
-	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       else if(Alarm_Init_Requested == alarm_button.push_button_action_u16 && button_pushed == alarm_button.button_status)
 	{
@@ -258,7 +260,6 @@ static void FSMLF_Menu_Config(void)
   button_descriptor set_button;
   button_descriptor increment_button;
   button_descriptor decrement_button;
-  LCD_Out_Buffer_T local_LCD_str;
 
   APPIFEF_Get_Button_Req(Set, &set_button);
   APPIFEF_Get_Button_Req(Increment, &increment_button);
@@ -266,9 +267,109 @@ static void FSMLF_Menu_Config(void)
 
   switch(settings_menu_state_e)
   {
-    case setting_init:
+    case State_Init_TimeDate:
 
-      delay_state += CLK_UNIT_ONE;
+      TimeDate_Set_Init(&increment_button, &decrement_button);
+
+      break;
+    case State_Set_Hr_TimeDate:
+
+      TimeDate_Set_Hrs(&increment_button, &decrement_button);
+
+      if(Setting_Min_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+	{
+	  settings_menu_state_e = State_Set_Mn_TimeDate;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+	}
+      break;
+    case State_Set_Mn_TimeDate:
+
+      TimeDate_Set_Mn(&increment_button, &decrement_button);
+
+      if(Setting_Format_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+	{
+	  settings_menu_state_e = State_Set_Time_Format_TimeDate;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+	}
+      break;
+    case State_Set_Time_Format_TimeDate:
+
+      TimeDate_Set_Format(&increment_button, &decrement_button);
+
+      if(Setting_Year_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+	{
+	  settings_menu_state_e = State_Set_year_TimeDate;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+	}
+      break;
+
+    case State_Set_year_TimeDate:
+
+      TimeDate_Set_Year(&increment_button, &decrement_button);
+
+      if(Setting_Month_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+	{
+	  settings_menu_state_e = State_Set_month_TimeDate;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+	}
+      break;
+    case State_Set_month_TimeDate:
+
+      TimeDate_Set_Month(&increment_button, &decrement_button);
+
+      if(Setting_Day_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+	{
+	  settings_menu_state_e = State_Set_day_TimeDate;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+	}
+      break;
+    case State_Set_day_TimeDate:
+
+      TimeDate_Set_Day(&increment_button, &decrement_button);
+
+      if(Setting_Exit_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+	{
+	  settings_menu_state_e = State_Exit_TimeDate;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+	}
+      break;
+    default:
+
+      TimeDate_Set_Exit(&increment_button, &decrement_button);
+      break;
+  }
+}
+
+/******************************************************************************
+* Function : TimeDate_Set_Init
+*
+*
+* @brief:  This function is the main function that will coordinate the main state machine of the clock
+*
+* @param:   None.
+*
+* @return:  None.
+*
+*
+*******************************************************************************/
+static void TimeDate_Set_Init(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+  if(NULL != button_increment && NULL != button_decrement)
+    {
+      LCD_Out_Buffer_T local_LCD_str;
+
+      if(EXPIRE_TIMER == timer_start_exit_alarm)
+	{
+
+	  timer_start_exit_alarm = START_TIMER;
+	  settings_menu_state_e = State_Set_Hr_TimeDate;
+	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+
+	}
+      else
+	{
+	  timer_start_exit_alarm -= TIMER_TICK;
+	}
 
       strncpy((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Setting Time    ", APPIF_MAX_LCD_DIGIT);
       local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
@@ -278,100 +379,10 @@ static void FSMLF_Menu_Config(void)
 
       APPIFEF_Send_LCD(&local_LCD_str);
 
-      if(0x04 == delay_state)
-	{
-	  settings_menu_state_e = hour_setting;
-	  delay_state = 0x00u;
-	}
-
-      break;
-    case hour_setting:
-
-      CLKLF_Set_Hour(&increment_button, &decrement_button);
-
-      if(Setting_Hour_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
-	{
-	  settings_menu_state_e = min_setting;
-	  APPIFEF_Set_Button_Status(Set, button_proccessed);
-	}
-      break;
-    case min_setting:
-
-      CLKLF_Set_Minute(&increment_button, &decrement_button);
-
-      if(Setting_Min_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
-	{
-	  settings_menu_state_e = time_formart_setting;
-	  APPIFEF_Set_Button_Status(Set, button_proccessed);
-	}
-      break;
-    case time_formart_setting:
-
-      CLKLF_Set_Time_Format(&increment_button, &decrement_button);
-
-      if(Setting_Sec_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
-	{
-	  settings_menu_state_e = year_setting;
-	  APPIFEF_Set_Button_Status(Set, button_proccessed);
-	}
-      break;
-
-    case year_setting:
-
-      CLKLF_Set_Year(&increment_button, &decrement_button);
-
-      if(Setting_Year_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
-	{
-	  settings_menu_state_e = month_setting;
-	  APPIFEF_Set_Button_Status(Set, button_proccessed);
-	}
-      break;
-    case month_setting:
-
-      CLKLF_Set_Month(&increment_button, &decrement_button);
-
-      if(Setting_Month_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
-	{
-	  settings_menu_state_e = day_setting;
-	  APPIFEF_Set_Button_Status(Set, button_proccessed);
-	}
-      break;
-    case day_setting:
-
-      CLKLF_Set_Day(&increment_button, &decrement_button);
-
-      if(Setting_Day_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
-	{
-	  settings_menu_state_e = exit_setting;
-	  APPIFEF_Set_Button_Status(Set, button_proccessed);
-	}
-      break;
-    default:
-
-      delay_state += CLK_UNIT_ONE;
-
-      strncpy((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Saving Settings ", APPIF_MAX_LCD_DIGIT);
-      local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
-
-
-      strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
-      local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
-
-      APPIFEF_Send_LCD(&local_LCD_str);
-
-      if(0x04 == delay_state)
-	{
-	  main_clock_state_e = print;
-	  delay_state = 0x00u;
-	  Write_TimeDate(clk_temp_buffer_timeDate, CLK_timeDate_Max);
-	  APPIFEF_Clear();
-	}
-
-      break;
-  }
+    }
 }
 
-static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descriptor * button_decrement)
+static void TimeDate_Set_Hrs(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
   LCD_Out_Buffer_T local_LCD_str;
 
@@ -412,7 +423,7 @@ static void CLKLF_Set_Hour(button_descriptor * button_increment, button_descript
 
 }
 
-static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descriptor * button_decrement)
+static void TimeDate_Set_Mn(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
   LCD_Out_Buffer_T local_LCD_str;
@@ -452,7 +463,7 @@ static void CLKLF_Set_Minute(button_descriptor * button_increment, button_descri
   APPIFEF_Send_LCD(&local_LCD_str);
 }
 
-static void CLKLF_Set_Time_Format(button_descriptor * button_increment, button_descriptor * button_decrement)
+static void TimeDate_Set_Format(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
   LCD_Out_Buffer_T local_LCD_str;
@@ -495,7 +506,7 @@ static void CLKLF_Set_Time_Format(button_descriptor * button_increment, button_d
   APPIFEF_Send_LCD(&local_LCD_str);
 }
 
-static void CLKLF_Set_Year(button_descriptor * button_increment, button_descriptor * button_decrement)
+static void TimeDate_Set_Year(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
   LCD_Out_Buffer_T local_LCD_str;
@@ -535,7 +546,7 @@ static void CLKLF_Set_Year(button_descriptor * button_increment, button_descript
   APPIFEF_Send_LCD(&local_LCD_str);
 }
 
-static void CLKLF_Set_Day(button_descriptor * button_increment, button_descriptor * button_decrement)
+static void TimeDate_Set_Day(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
   LCD_Out_Buffer_T local_LCD_str;
@@ -575,7 +586,7 @@ static void CLKLF_Set_Day(button_descriptor * button_increment, button_descripto
   APPIFEF_Send_LCD(&local_LCD_str);
 }
 
-static void CLKLF_Set_Month(button_descriptor * button_increment, button_descriptor * button_decrement)
+static void TimeDate_Set_Month(button_descriptor * button_increment, button_descriptor * button_decrement)
 {
 
   LCD_Out_Buffer_T local_LCD_str;
@@ -609,6 +620,55 @@ static void CLKLF_Set_Month(button_descriptor * button_increment, button_descrip
   local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
 
   APPIFEF_Send_LCD(&local_LCD_str);
+}
+
+/******************************************************************************
+* Function : TimeDate_Set_Exit
+*
+*
+* @brief:  This function is the main function that will coordinate the main state machine of the clock
+*
+* @param:   None.
+*
+* @return:  None.
+*
+*
+*******************************************************************************/
+void TimeDate_Set_Exit(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+
+  if(NULL != button_increment && NULL != button_decrement)
+    {
+      LCD_Out_Buffer_T local_LCD_str;
+
+      strncpy((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Saving Settings ", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+      strncpy((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "                ", APPIF_MAX_LCD_DIGIT);
+      local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+      APPIFEF_Send_LCD(&local_LCD_str);
+
+      if(EXPIRE_TIMER == timer_start_exit_alarm)
+	{
+	  Write_TimeDate(clk_temp_buffer_timeDate, CLK_timeDate_Max);
+
+	  settings_menu_state_e = State_Init_TimeDate;
+	  main_clock_state_e = print;
+
+	  APPIFEF_Set_Button_Status (Set, button_proccessed);
+	  APPIFEF_Clear_push_button (Set);
+
+	  APPIFEF_Clear();
+
+	  timer_start_exit_alarm = START_TIMER;
+	}
+      else
+	{
+	  timer_start_exit_alarm -= TIMER_TICK;
+	}
+
+    }
 }
 
 
@@ -1011,6 +1071,7 @@ void Alarm_Set_Exit(button_descriptor * button_increment, button_descriptor * bu
 	  APPIFEF_Clear ();
 
 	  timer_start_exit_alarm = START_TIMER;
+
 	}
       else
 	{
