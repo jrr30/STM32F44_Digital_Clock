@@ -72,11 +72,12 @@ void Write_TimeDate(uint8_t * timebuffer_pu8, uint8_t total_size_array)
 }
 
 
-void SetAlarm(uint8_t * timebuffer_pu8, uint8_t max_array)
+uint8_t SetAlarm(uint8_t * timebuffer_pu8, uint8_t max_array)
 {
   RTC_AlarmTypeDef Alarm_handler;
   uint8_t alarmlocal[RTC_Alram_info_Max];
   HAL_StatusTypeDef alarm_status_config = HAL_ERROR;
+  uint8_t alarm_enable_bl = 0x00u;
 
   if(NULL != timebuffer_pu8)
     {
@@ -92,9 +93,9 @@ void SetAlarm(uint8_t * timebuffer_pu8, uint8_t max_array)
 
       if(HAL_OK == alarm_status_config)
 	{
-	  LCDEF_Print_Custome_Char(Char_Bell_Custome, Row_1, Column_1);
+	  alarm_enable_bl = 0x01u;
 	}
     }
-
+  return alarm_enable_bl;
 }
 

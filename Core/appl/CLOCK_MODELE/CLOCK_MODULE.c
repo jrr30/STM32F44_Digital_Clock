@@ -41,19 +41,14 @@
 #define CLK_MAX_TIME_BUFFER (0x03u)
 #define CLK_MAX_DATE_BUFFER (0x03u)
 
-#define CLK_HRS    (0x00u)
-#define CLK_MIN    (0x01u)
-#define CLK_SEC    (0x02u)
-
-#define CLK_YEAR   (0x00u)
-#define CLK_MOUNTH (0x01u)
-#define CLK_DAY    (0x02u)
-
 #define CLK_UNIT_ONE (0x01u)
 
 #define TIMER_TICK   (0x01u)
 #define EXPIRE_TIMER (0x00u)
 #define START_TIMER  (0x04u)
+
+#define TRUE  (0x01u)
+#define FALSE (0x00u)
 
 #define YEAR_2000 (2000u)
 
@@ -134,6 +129,7 @@ E_setting_menu_states settings_menu_state_e = State_Init_TimeDate;
 E_alarm_setttings_states_T alarm_settings_state_e = State_Init_Alarm;
 uint8_t delay_state = 0x00u;
 
+static uint8_t g_alarm_enable_bl = FALSE;
 static uint8_t timer_start_exit_alarm;
 
 static uint8_t clk_temp_buffer_timeDate[CLK_timeDate_Max];
@@ -696,6 +692,11 @@ static void CLKF_Print_Time_Date(void)
 
   //sending date to Appitf SW component
   APPIFEF_Send_LCD(&local_LCD_str);
+
+  if(TRUE == g_alarm_enable_bl)
+    {
+      LCDEF_Print_Custome_Char(Char_Bell_Custome, Row_2, Column_1);
+    }
 }
 
 
@@ -1009,11 +1010,10 @@ static void Alarm_Week_Days(button_descriptor * button_increment, button_descrip
 	      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
 	      APPIFEF_Clear_push_button(Decrement);
 	    }
+
 	  APPIFEF_Set_Button_Status(Alarm, button_proccessed);
 	}
     }
-
-
 
   sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, " M T W T F S S");
   local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
@@ -1061,13 +1061,13 @@ void Alarm_Set_Exit(button_descriptor * button_increment, button_descriptor * bu
 
       if(EXPIRE_TIMER == timer_start_exit_alarm)
 	{
-	  SetAlarm (clk_temp_buffer_time_alarm, CLK_Alram_info_Max);
+	  g_alarm_enable_bl = SetAlarm(clk_temp_buffer_time_alarm, CLK_Alram_info_Max);
+
 	  alarm_settings_state_e = State_Init_Alarm;
 	  main_clock_state_e = print;
 
 	  APPIFEF_Set_Button_Status (Alarm, button_proccessed);
 	  APPIFEF_Clear_push_button (Alarm);
-
 	  APPIFEF_Clear ();
 
 	  timer_start_exit_alarm = START_TIMER;

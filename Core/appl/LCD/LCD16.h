@@ -93,6 +93,11 @@ extern void delay_us(uint32_t microseconds);
 #define M5_8_Font 0x20u
 #define M5_11_Font 0x24u
 
+#define DISPLAY_POSITION (0x02u)
+#define CURSOR_POSITION  (0x01u)
+#define BLINK_POSITION   (0x00u)
+#define FIX_DB3          (0x08u)
+
 #define SET_CGRAM_1 0x40u
 #define SET_CGRAM_2 0x48u
 #define SET_CGRAM_3 0x56u
@@ -151,9 +156,34 @@ typedef enum Char_Custome_t
 	Max_Char_Custome,
 } Char_Custome_T;
 
+typedef enum bit_display_enable_t
+{
+  LCD16_display_disable,
+  LCD16_display_enable,
+
+ LCD16_display_max_bit_LCD
+}LCD16_Display_bit_enable_T;
+
+typedef enum bit_curso_enable_t
+{
+  LCD16_cursor_disable,
+  LCD16_cursor_enable,
+
+ LCD16_cursor_max_bit_LCD
+}LCD16_cursor_bit_enable_T;
+
+typedef enum bit_blink_enable_t
+{
+  LCD16_blink_disable,
+  LCD16_blink_enable,
+
+ LCD16_blink_max_bit_LCD
+}LCD16_blink_bit_enable_T;
+
 /*Public functions-----------------------------------*/
 void Write_Data(uint8_t data);
 void Set_Cursor(uint8_t row, uint8_t column);
+void Display_ONOFF_Control(LCD16_Display_bit_enable_T set_display_enable_e, LCD16_cursor_bit_enable_T cursor_enable_e, LCD16_blink_bit_enable_T blink_enable_e);
 void LCD_Config(void);
 void Clear(void);
 void Home(void);

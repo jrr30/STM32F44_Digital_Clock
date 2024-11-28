@@ -125,6 +125,14 @@ typedef struct
   button_status button_status;
 }button_descriptor;
 
+
+typedef struct alarm_cursor
+{
+  uint8_t alarm_status_cfg;
+  uint8_t cursor_row;
+  uint8_t cursor_colum;
+
+}APPIF_alarm_cursor_setting_container;
 /*Public functions--------------------------------------*/
 
 void APPIFEF_Thread(void);
@@ -135,6 +143,8 @@ void APPIFEF_Set_Button_Status(Input_Source source_e, button_status button_statu
 void APPIFEF_Clear_push_button(Input_Source source_e);
 
 void APPIFEF_Get_OutBuffer(LCD_Out_Buffer_T * prt_outbuffer);
+uint8_t APPIFEF_Get_Alarm_Status_Cfg(uint8_t * row_alarm_position_cursor, uint8_t * coloum_alarm_position_cursor);
+void APPIFEF_Set_Alarm_Status_Cfg(APPIF_alarm_cursor_setting_container * alarm_container);
 void APPIFEF_Send_LCD(LCD_Out_Buffer_T * ptr_str);
 
 void APPIFEF_Clear(void);

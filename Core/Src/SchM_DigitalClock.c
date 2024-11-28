@@ -25,7 +25,7 @@
 
 #include "main.h"
 
-TaskHandle_t Task_50ms_Handler = NULL;
+TaskHandle_t Task_20ms_Handler = NULL;
 TaskHandle_t Task_200ms_Handler = NULL;
 TaskHandle_t Task_400ms_Handler = NULL;
 TaskHandle_t Task_500ms_Handler = NULL;
@@ -35,7 +35,7 @@ TimerHandle_t buzzer_timer = NULL;
 QueueHandle_t Time_Queue_Handler = NULL;
 QueueHandle_t User_Input_Time_Date_Queue_Handler = NULL;
 
-static void Task_50ms(void * parameters);
+static void Task_20ms(void * parameters);
 static void Task_200ms(void * parameters);
 static void Task_400ms(void * parameters);
 static void Task_500ms(void * parameters);
@@ -45,8 +45,8 @@ static void BuzzerTimerCallback( TimerHandle_t xTimer);
 void Task_Generation(void)
 {
 
-	xTaskCreate(Task_50ms,   "50ms", 150, NULL, 1, &Task_50ms_Handler );
-	xTaskCreate(Task_200ms, "200ms", 200, NULL, 1, &Task_200ms_Handler);
+	xTaskCreate(Task_20ms,   "20ms", 150, NULL, 5, &Task_20ms_Handler );
+	xTaskCreate(Task_200ms, "200ms", 200, NULL, 2, &Task_200ms_Handler);
 	xTaskCreate(Task_400ms, "400ms", 550, NULL, 2, &Task_400ms_Handler);
 	xTaskCreate(Task_500ms, "500ms", 200, NULL, 3, &Task_500ms_Handler);
 
@@ -81,7 +81,7 @@ void BuzzerTimerCallback( TimerHandle_t xTimer)
   * @retval None
   */
 
-void Task_50ms(void * parameters)
+void Task_20ms(void * parameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
@@ -89,7 +89,7 @@ void Task_50ms(void * parameters)
 	{
 
 		Io_Thread();
-		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(50));
+		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(20));
 	}
 }
 

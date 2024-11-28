@@ -180,10 +180,12 @@ void LCD_Config(void)
 
 
 	Write_Command(SET_CGRAM_1);
+
 	for(iter = Character_Row_0; iter < Max_Character_Row;iter++)
 	  {
 	    Write_Data(Bell_Custome_Character[iter]);
 	  }
+
 }
 
 /**
@@ -234,6 +236,29 @@ void Set_Cursor(Row_lcd row, uint8_t column)
 }
 
 /**
+  * @brief  Display_ONOFF_Control.
+  *
+  * @note   This function Set the cursor in the display at any column and row.
+  *           Column and row must be provided.
+  * @param  row sets wich row information will be display.
+  *          This parameter can be one of the Column_lcd enum values:
+  *            @arg Row_1: Display cursor in the first row.
+  *            @arg Row_2: Display cursor in the second row.
+  * @param  column placed cursor in the specific column.
+  *          This parameter can be one of the Column_lcd enum values:
+  *            @arg Column_lcd: Columns staring in 1 up to 16.
+  * @retval None
+  */
+void Display_ONOFF_Control(LCD16_Display_bit_enable_T set_display_enable_e, LCD16_cursor_bit_enable_T cursor_enable_e, LCD16_blink_bit_enable_T blink_enable_e)
+{
+
+  Write_Command( (FIX_DB3) |
+		 (set_display_enable_e << DISPLAY_POSITION) |
+		 (cursor_enable_e << CURSOR_POSITION) |
+		 (blink_enable_e << BLINK_POSITION));
+}
+
+/**
   * @brief  Clear Screen
   *
   * @note   This function will clear information displayed in the screen, but this will not set cursor at home position.
@@ -260,7 +285,10 @@ void Home(void)
 
 void LCDEF_Print_Str(void)
 {
-  LCD_Out_Buffer_T local_buffef;
+  LCD_Out_Buffer_T local_buffef = {0u};
+  uint8_t alarm_setting_ready = 0u;
+  uint8_t row_cursor_alarm = 0u;
+  uint8_t colum_cursor_alarm = 0u;
 
   APPIFEF_Get_OutBuffer(&local_buffef);
 
@@ -269,6 +297,15 @@ void LCDEF_Print_Str(void)
 
   Set_Cursor(Row_2, local_buffef.Down_Row_Buffer.colum_position);
   print_string(local_buffef.Down_Row_Buffer.appif_out_buffer_u8);
+
+  alarm_setting_ready = APPIFEF_Get_Alarm_Status_Cfg(&row_cursor_alarm, &colum_cursor_alarm);
+
+  if(1 == alarm_setting_ready)
+    {
+      Set_Cursor(row_cursor_alarm, colum_cursor_alarm);
+      Display_ONOFF_Control(LCD16_display_enable, LCD16_cursor_disable, LCD16_blink_enable);
+    }
+
 }
 
 

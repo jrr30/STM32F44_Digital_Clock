@@ -25,6 +25,8 @@
 #define APPIF_MOUNTH (0x01u)
 #define APPIF_DAY    (0x02u)
 
+#define TRUE  (0x01u)
+#define FALSE (0x00u)
 /*User typedef------------------------------------------*/
 
 typedef enum APPIF_Date_info_t
@@ -54,6 +56,8 @@ typedef enum APPIF_time_info_t
 
 	APPIF_time_info_Max
 }APPIF_time_info_T;
+
+
 /*Private variables definition--------------------------*/
 
 //static volatile uint16_t push_button_status_u16[Source_max];
@@ -61,6 +65,8 @@ typedef enum APPIF_time_info_t
 static button_descriptor push_button_status_u16[Source_max];
 
 static LCD_Out_Buffer_T APPIF_LCD_Out_Buffer;
+
+static APPIF_alarm_cursor_setting_container alarm_cursor_setting_status = {0u};
 
 static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source source_e);
 
@@ -205,6 +211,32 @@ void APPIFEF_Get_OutBuffer(LCD_Out_Buffer_T * prt_outbuffer)
   memcpy(prt_outbuffer, &APPIF_LCD_Out_Buffer, sizeof(APPIF_LCD_Out_Buffer));
 }
 
+uint8_t APPIFEF_Get_Alarm_Status_Cfg(uint8_t * row_alarm_position_cursor, uint8_t * coloum_alarm_position_cursor)
+{
+
+  uint8_t alarm_seeting_status = FALSE;
+
+  if(NULL != row_alarm_position_cursor && NULL != coloum_alarm_position_cursor)
+    {
+      if(TRUE == alarm_cursor_setting_status.alarm_status_cfg)
+	{
+	  memcpy(&alarm_cursor_setting_status.cursor_row, &row_alarm_position_cursor, sizeof(alarm_cursor_setting_status.cursor_row));
+	  memcpy(&alarm_cursor_setting_status.cursor_colum, &coloum_alarm_position_cursor, sizeof(alarm_cursor_setting_status.cursor_colum));
+	  alarm_seeting_status = TRUE;
+	}
+
+    }
+  return alarm_seeting_status;
+}
+
+void APPIFEF_Set_Alarm_Status_Cfg(APPIF_alarm_cursor_setting_container * alarm_container)
+{
+
+  if(NULL != alarm_container)
+    {
+	  memcpy(&alarm_cursor_setting_status, &alarm_container, sizeof(alarm_cursor_setting_status));
+    }
+}
 
 void APPIFEF_Send_LCD(LCD_Out_Buffer_T * ptr_str)
 {

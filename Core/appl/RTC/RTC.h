@@ -53,7 +53,7 @@ typedef enum RTC_time_Alarm_info_t
 void RTC_updateTimeDate(void);
 void Read_TimeDate(uint8_t * timebuffer_pu8, uint8_t total_size_array);
 void Write_TimeDate(uint8_t * timebuffer_pu8, uint8_t total_size_array);
-void SetAlarm(uint8_t * timebuffer_pu8, uint8_t max_array);
+uint8_t SetAlarm(uint8_t * timebuffer_pu8, uint8_t max_array);
 
 
 #endif /* APPL_RTC_RTC_H_ */
