@@ -179,7 +179,7 @@ void LCD_Config(void)
 
 
 
-	Write_Command(SET_CGRAM_1);
+	Write_Command(SET_CGRAM_2);
 
 	for(iter = Character_Row_0; iter < Max_Character_Row;iter++)
 	  {
@@ -286,9 +286,9 @@ void Home(void)
 void LCDEF_Print_Str(void)
 {
   LCD_Out_Buffer_T local_buffef = {0u};
-  uint8_t alarm_setting_ready = 0u;
-  uint8_t row_cursor_alarm = 0u;
-  uint8_t colum_cursor_alarm = 0u;
+//  uint8_t alarm_setting_ready = 0u;
+//  uint8_t row_cursor_alarm = 0u;
+//  uint8_t colum_cursor_alarm = 0u;
 
   APPIFEF_Get_OutBuffer(&local_buffef);
 
@@ -298,13 +298,17 @@ void LCDEF_Print_Str(void)
   Set_Cursor(Row_2, local_buffef.Down_Row_Buffer.colum_position);
   print_string(local_buffef.Down_Row_Buffer.appif_out_buffer_u8);
 
-  alarm_setting_ready = APPIFEF_Get_Alarm_Status_Cfg(&row_cursor_alarm, &colum_cursor_alarm);
+//  alarm_setting_ready = APPIFEF_Get_Alarm_Status_Cfg(&row_cursor_alarm, &colum_cursor_alarm);
 
-  if(1 == alarm_setting_ready)
-    {
-      Set_Cursor(row_cursor_alarm, colum_cursor_alarm);
-      Display_ONOFF_Control(LCD16_display_enable, LCD16_cursor_disable, LCD16_blink_enable);
-    }
+//  if(1 == alarm_setting_ready)
+//    {
+//      Set_Cursor(row_cursor_alarm, colum_cursor_alarm);
+//      Display_ONOFF_Control(LCD16_display_enable, LCD16_cursor_disable, LCD16_blink_enable);
+//    }
+//  else
+//  {
+//	  Display_ONOFF_Control(LCD16_display_enable, LCD16_cursor_disable, LCD16_blink_disable);
+//  }
 
 }
 
@@ -316,6 +320,6 @@ void LCDEF_Print_Custome_Char(Char_Custome_T char_number, Row_lcd row, Column_lc
 
 	if(Char_Bell_Custome == char_number )
 	  {
-	    Write_Data(DISPLAY_CGRAM_1);
+	    Write_Data(DISPLAY_CGRAM_2);
 	  }
 }

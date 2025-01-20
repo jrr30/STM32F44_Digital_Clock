@@ -52,6 +52,7 @@ typedef enum CLK_time_info_t
 	CLK_time_format,
 	CLK_year,
 	CLK_month,
+	CLK_Weekday,
 	CLK_day,
 
 	CLK_timeDate_Max
@@ -72,6 +73,20 @@ typedef enum CLK_time_Alarm_info_t
 
 	CLK_Alram_info_Max
 }CLK_time_Alarm_info_T;
+
+typedef enum CLK_Weekday_info_t
+{
+	CLK_NA,
+	CLK_Monday,
+	CLK_Tuesday,
+	CLK_Wensday,
+	CLK_Thursday,
+	CLK_Friday,
+	CLK_Saturday,
+	CLK_Sunday,
+
+	CLK_Weekday_Max
+}CLK_Weekday_info_T;
 
 /******************************************************************************
 * Variables

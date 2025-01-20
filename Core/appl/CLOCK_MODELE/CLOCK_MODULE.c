@@ -41,16 +41,23 @@
 #define CLK_MAX_TIME_BUFFER (0x03u)
 #define CLK_MAX_DATE_BUFFER (0x03u)
 
+#define CLK_HRS    (0x00u)
+#define CLK_MIN    (0x01u)
+#define CLK_SEC    (0x02u)
+
+#define CLK_YEAR   (0x00u)
+#define CLK_MOUNTH (0x01u)
+#define CLK_DAY    (0x02u)
+
 #define CLK_UNIT_ONE (0x01u)
 
 #define TIMER_TICK   (0x01u)
 #define EXPIRE_TIMER (0x00u)
 #define START_TIMER  (0x04u)
 
-#define TRUE  (0x01u)
-#define FALSE (0x00u)
-
 #define YEAR_2000 (2000u)
+
+#define CLK_RESET_TIMEOUT_SET_TIMER (150u) // Current timeout time is one minute.
 
 #define ALARM_STATE_TABLE \
   ENTRY(State_Init_Alarm, Alarm_Set_Init)\
@@ -67,6 +74,7 @@
   ENTRY(State_Set_Time_Format_TimeDate, TimeDate_Set_Format)\
   ENTRY(State_Set_year_TimeDate, TimeDate_Set_Year)\
   ENTRY(State_Set_month_TimeDate, TimeDate_Set_Month)\
+  ENTRY(State_Set_Weekday_TimeDate, TimeDate_Set_Weekday)\
   ENTRY(State_Set_day_TimeDate, TimeDate_Set_Day)\
   ENTRY(State_Exit_TimeDate, TimeDate_Set_Exit)\
 
@@ -74,6 +82,8 @@
 /******************************************************************************
 * Module Typedefs
 *******************************************************************************/
+
+
 typedef enum main_clock_TAG
 {
   init,
@@ -129,11 +139,19 @@ E_setting_menu_states settings_menu_state_e = State_Init_TimeDate;
 E_alarm_setttings_states_T alarm_settings_state_e = State_Init_Alarm;
 uint8_t delay_state = 0x00u;
 
-static uint8_t g_alarm_enable_bl = FALSE;
+static button_descriptor previous_set_button;
+static button_descriptor previous_increment_button;
+static button_descriptor previous_decrement_button;
+
 static uint8_t timer_start_exit_alarm;
+static uint8_t alarm_on_off  = 0u;
 
 static uint8_t clk_temp_buffer_timeDate[CLK_timeDate_Max];
 static uint8_t clk_temp_buffer_time_alarm[CLK_Alram_info_Max];
+
+static uint32_t clk_timeout_set_time = CLK_RESET_TIMEOUT_SET_TIMER;
+
+APPIF_alarm_cursor_setting_container alarm_set_cursor_position = {0};
 
 static uint16_t clk_translation_action_buffer_alarm[CLK_Alram_info_Max] =
     {
@@ -148,6 +166,32 @@ static uint16_t clk_translation_action_buffer_alarm[CLK_Alram_info_Max] =
 	Alarm_Saturday_Requested,
 	Alarm_Sunday_Requested,
     };
+
+const char * clk_translation_weekday_txt[CLK_Weekday_Max] =
+    {
+    "NA",
+	"Monday",
+	"Tuesday",
+	"Wensday",
+	"Thursday",
+	"Friday",
+	"Saturday",
+	"Sunday",
+    };
+
+//static uint8_t clk_translation_alarm_cursor[CLK_Alram_info_Max] =
+//{
+//		Column_16,
+//		Column_16,
+//		Column_16,
+//		Column_2,
+//		Column_4,
+//		Column_6,
+//		Column_8,
+//		Column_10,
+//		Column_12,
+//		Column_14,
+//};
 
 /******************************************************************************
 * Function Prototypes
@@ -179,6 +223,16 @@ void FSMEF_Clock_Init(void)
     memset (clk_temp_buffer_timeDate, 0x00u, sizeof(clk_temp_buffer_timeDate));
 
     timer_start_exit_alarm = START_TIMER;
+    clk_temp_buffer_timeDate[CLK_Weekday] = 1u;
+    clk_temp_buffer_time_alarm[CLK_Alarm_Monday] = alarm_disable;
+    clk_temp_buffer_time_alarm[CLK_Alarm_Tuesday] = alarm_disable;
+    clk_temp_buffer_time_alarm[CLK_Alarm_Wensday] = alarm_disable;
+    clk_temp_buffer_time_alarm[CLK_Alarm_Thursday] = alarm_disable;
+    clk_temp_buffer_time_alarm[CLK_Alarm_Friday] = alarm_disable;
+    clk_temp_buffer_time_alarm[CLK_Alarm_Saturday] = alarm_disable;
+    clk_temp_buffer_time_alarm[CLK_Alarm_Sunday] = alarm_disable;
+
+    alarm_on_off = 0u;
 }
 
 
@@ -261,6 +315,24 @@ static void FSMLF_Menu_Config(void)
   APPIFEF_Get_Button_Req(Increment, &increment_button);
   APPIFEF_Get_Button_Req(Decrement, &decrement_button);
 
+
+  if(EXPIRE_TIMER == clk_timeout_set_time)
+  {
+	  settings_menu_state_e = State_Exit_TimeDate;
+	  clk_timeout_set_time = CLK_RESET_TIMEOUT_SET_TIMER;
+	  Read_TimeDate(clk_temp_buffer_timeDate, CLK_timeDate_Max);
+  }
+  else if((previous_set_button.push_button_action_u16 != set_button.push_button_action_u16)             ||
+          (previous_decrement_button.push_button_action_u16 != decrement_button.push_button_action_u16) ||
+          (previous_increment_button.push_button_action_u16 != increment_button.push_button_action_u16))
+  {
+	  clk_timeout_set_time = CLK_RESET_TIMEOUT_SET_TIMER;
+  }
+  else
+  {
+	  clk_timeout_set_time = clk_timeout_set_time - TIMER_TICK;
+  }
+
   switch(settings_menu_state_e)
   {
     case State_Init_TimeDate:
@@ -313,12 +385,24 @@ static void FSMLF_Menu_Config(void)
 
       TimeDate_Set_Month(&increment_button, &decrement_button);
 
-      if(Setting_Day_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+      if(Setting_WeekDay_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
 	{
-	  settings_menu_state_e = State_Set_day_TimeDate;
+	  settings_menu_state_e = State_Set_Weekday_TimeDate;
 	  APPIFEF_Set_Button_Status(Set, button_proccessed);
 	}
       break;
+
+    case State_Set_Weekday_TimeDate:
+
+    	TimeDate_Set_Weekday(&increment_button, &decrement_button);
+
+        if(Setting_Day_Requested == set_button.push_button_action_u16 && button_pushed == set_button.button_status)
+  	{
+  	  settings_menu_state_e = State_Set_day_TimeDate;
+  	  APPIFEF_Set_Button_Status(Set, button_proccessed);
+  	}
+    	break;
+
     case State_Set_day_TimeDate:
 
       TimeDate_Set_Day(&increment_button, &decrement_button);
@@ -334,6 +418,10 @@ static void FSMLF_Menu_Config(void)
       TimeDate_Set_Exit(&increment_button, &decrement_button);
       break;
   }
+
+  previous_set_button.push_button_action_u16 = set_button.push_button_action_u16;
+  previous_decrement_button.push_button_action_u16 = decrement_button.push_button_action_u16;
+  previous_increment_button.push_button_action_u16 = increment_button.push_button_action_u16;
 }
 
 /******************************************************************************
@@ -618,6 +706,45 @@ static void TimeDate_Set_Month(button_descriptor * button_increment, button_desc
   APPIFEF_Send_LCD(&local_LCD_str);
 }
 
+static void TimeDate_Set_Weekday(button_descriptor * button_increment, button_descriptor * button_decrement)
+{
+	  LCD_Out_Buffer_T local_LCD_str;
+
+	  if (Incrementing_Requested_Requested == button_increment->push_button_action_u16 && button_pushed == button_increment->button_status)
+	    {
+	      clk_temp_buffer_timeDate[CLK_Weekday] += CLK_UNIT_ONE;
+	      APPIFEF_Set_Button_Status(Increment, button_proccessed);
+	      APPIFEF_Clear_push_button(Increment);
+	    }
+	  else if (Decrementing_Requested_Requested == button_decrement->push_button_action_u16 && button_pushed == button_decrement->button_status)
+	    {
+	      clk_temp_buffer_timeDate[CLK_Weekday] -= CLK_UNIT_ONE;
+	      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
+	      APPIFEF_Clear_push_button(Decrement);
+	    }
+	  else
+	    {
+
+	    }
+
+	  if (clk_temp_buffer_timeDate[CLK_Weekday] < 1u)
+	    {
+	      clk_temp_buffer_timeDate[CLK_Weekday] = 1u;
+	    }
+	  else if (clk_temp_buffer_timeDate[CLK_Weekday] > 7u)
+	    {
+	      clk_temp_buffer_timeDate[CLK_Weekday] = 7u;
+	    }
+
+	  sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Set WeekDay:    ");
+	  local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
+
+	  sprintf((char *)local_LCD_str.Down_Row_Buffer.appif_out_buffer_u8, "%s      ",clk_translation_weekday_txt[clk_temp_buffer_timeDate[CLK_Weekday]]);
+	  local_LCD_str.Down_Row_Buffer.colum_position = Column_1;
+
+	  APPIFEF_Send_LCD(&local_LCD_str);
+}
+
 /******************************************************************************
 * Function : TimeDate_Set_Exit
 *
@@ -693,10 +820,19 @@ static void CLKF_Print_Time_Date(void)
   //sending date to Appitf SW component
   APPIFEF_Send_LCD(&local_LCD_str);
 
-  if(TRUE == g_alarm_enable_bl)
-    {
-      LCDEF_Print_Custome_Char(Char_Bell_Custome, Row_2, Column_1);
-    }
+  if( (1u ==alarm_on_off) &&
+		  (alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Monday]  ||
+		   alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Tuesday] ||
+		   alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Wensday] ||
+		   alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Thursday]||
+		   alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Friday]  ||
+		   alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Saturday]||
+		   alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Sunday]
+		   )
+	 )
+  {
+	  LCDEF_Print_Custome_Char(Char_Bell_Custome, Row_2, Column_1);
+  }
 }
 
 
@@ -901,13 +1037,13 @@ static void Alarm_Set_Mn(button_descriptor * button_increment, button_descriptor
       clk_temp_buffer_time_alarm[CLK_Alarm_minutes] -= CLK_UNIT_ONE;
     }
 
-  if (clk_temp_buffer_time_alarm[CLK_Alarm_minutes] <= 0x00u)
+  if (clk_temp_buffer_time_alarm[CLK_Alarm_minutes] <= 0u)
     {
-      clk_temp_buffer_time_alarm[CLK_Alarm_minutes] = 0x00u;
+      clk_temp_buffer_time_alarm[CLK_Alarm_minutes] = 0u;
     }
-  else if (clk_temp_buffer_time_alarm[CLK_Alarm_minutes] >= 12u)
+  else if (clk_temp_buffer_time_alarm[CLK_Alarm_minutes] >= 60u)
     {
-      clk_temp_buffer_time_alarm[CLK_Alarm_minutes] = 12u;
+      clk_temp_buffer_time_alarm[CLK_Alarm_minutes] = 60u;
     }
 
   sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, "Enter min:%02d ", clk_temp_buffer_time_alarm[CLK_Alarm_minutes]);
@@ -1010,10 +1146,16 @@ static void Alarm_Week_Days(button_descriptor * button_increment, button_descrip
 	      APPIFEF_Set_Button_Status(Decrement, button_proccessed);
 	      APPIFEF_Clear_push_button(Decrement);
 	    }
-
 	  APPIFEF_Set_Button_Status(Alarm, button_proccessed);
+
+//	  alarm_set_cursor_position.alarm_status_cfg = 1u;
+//	  alarm_set_cursor_position.cursor_row = Row_2;
+//	  alarm_set_cursor_position.cursor_colum = clk_translation_alarm_cursor[iter_day];
+//	  APPIFEF_Set_Alarm_Status_Cfg(&alarm_set_cursor_position);
 	}
-    }
+   }
+
+
 
   sprintf((char *)local_LCD_str.Up_Row_Buffer.appif_out_buffer_u8, " M T W T F S S");
   local_LCD_str.Up_Row_Buffer.colum_position = Column_1;
@@ -1059,15 +1201,17 @@ void Alarm_Set_Exit(button_descriptor * button_increment, button_descriptor * bu
 
       APPIFEF_Send_LCD(&local_LCD_str);
 
-      if(EXPIRE_TIMER == timer_start_exit_alarm)
+    if(EXPIRE_TIMER == timer_start_exit_alarm)
 	{
-	  g_alarm_enable_bl = SetAlarm(clk_temp_buffer_time_alarm, CLK_Alram_info_Max);
-
+//      alarm_on_off = SetAlarm (clk_temp_buffer_time_alarm, CLK_Alram_info_Max);
+      alarm_on_off = 0u;
 	  alarm_settings_state_e = State_Init_Alarm;
 	  main_clock_state_e = print;
+	  alarm_set_cursor_position.alarm_status_cfg = 0;
 
 	  APPIFEF_Set_Button_Status (Alarm, button_proccessed);
 	  APPIFEF_Clear_push_button (Alarm);
+
 	  APPIFEF_Clear ();
 
 	  timer_start_exit_alarm = START_TIMER;
@@ -1081,5 +1225,42 @@ void Alarm_Set_Exit(button_descriptor * button_increment, button_descriptor * bu
     }
 }
 
+
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+{
+
+//	if(alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Monday])
+//	{
+//		buzzer_beep_on();
+//	}
+//	else if(alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Tuesday])
+//	{
+//		buzzer_beep_on();
+//	}
+//	else if(alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Wensday])
+//	{
+//		buzzer_beep_on();
+//	}
+//	else if(alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Thursday])
+//	{
+//		buzzer_beep_on();
+//	}
+//	else if(alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Friday])
+//	{
+//		buzzer_beep_on();
+//	}
+//	else if(alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Saturday])
+//	{
+//		buzzer_beep_on();
+//	}
+//	else if(alarm_enable == clk_temp_buffer_time_alarm[CLK_Alarm_Sunday])
+//	{
+//		buzzer_beep_on();
+//	}
+//	else
+//	{
+//
+//	}
+}
 
 /*************** END OF FUNCTIONS ***************************************************************************/

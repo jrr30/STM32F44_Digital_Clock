@@ -38,10 +38,11 @@ typedef enum Button_Set_Requests_TAG
 	Setting_Format_Requested = 0x0010,
 	Setting_Year_Requested   = 0x0020,
 	Setting_Month_Requested  = 0x0040,
-	Setting_Day_Requested    = 0x0080,
-	Setting_Exit_Requested   = 0x0100,
+	Setting_WeekDay_Requested= 0x0080,
+	Setting_Day_Requested    = 0x0100,
+	Setting_Exit_Requested   = 0x0200,
 
-	Set_max_status_Requested = 0x0200,
+	Set_max_status_Requested = 0x0400,
 
 }E_Button_Set_Requests;
 

@@ -77,6 +77,7 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 	{
 	    push_button_status_u16[Increment].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 	    push_button_status_u16[Increment].button_status = button_pushed;
+	    buzzer_beep_on();
 
 		if(push_button_status_u16[Increment].push_button_action_u16 == Incrementing_max_status_Requested)
 		{
@@ -88,6 +89,7 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 	{
 	    push_button_status_u16[Decrement].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 	    push_button_status_u16[Decrement].button_status = button_pushed;
+	    buzzer_beep_on();
 
 		if(push_button_status_u16[Decrement].push_button_action_u16 == Decrementing_max_status_Requested)
 		{
@@ -111,6 +113,7 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 
 		push_button_status_u16[Set].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 		push_button_status_u16[Set].button_status = button_pushed;
+		buzzer_beep_on();
 	      }
 
 	}
@@ -130,6 +133,7 @@ static void INTFLF_Button_translate_request(Input_Status status_e, Input_Source 
 
 		push_button_status_u16[Alarm].push_button_action_u16 <<= INTF_SHIFT_VALUE;
 		push_button_status_u16[Alarm].button_status = button_pushed;
+		buzzer_beep_on();
 	      }
 	}
 
@@ -183,7 +187,6 @@ void APPIFEF_Get_Button_Req(Input_Source source_e, button_descriptor * out_data)
 void APPIFEF_Set_Button_Status(Input_Source source_e, button_status button_status_e)
 {
   push_button_status_u16[source_e].button_status = button_status_e;
-//  buzzer_beep_on();
 }
 
 void APPIFEF_Clear_push_button(Input_Source source_e)
@@ -220,8 +223,11 @@ uint8_t APPIFEF_Get_Alarm_Status_Cfg(uint8_t * row_alarm_position_cursor, uint8_
     {
       if(TRUE == alarm_cursor_setting_status.alarm_status_cfg)
 	{
-	  memcpy(&alarm_cursor_setting_status.cursor_row, &row_alarm_position_cursor, sizeof(alarm_cursor_setting_status.cursor_row));
-	  memcpy(&alarm_cursor_setting_status.cursor_colum, &coloum_alarm_position_cursor, sizeof(alarm_cursor_setting_status.cursor_colum));
+//	  memcpy(&row_alarm_position_cursor, &alarm_cursor_setting_status.cursor_row, sizeof(alarm_cursor_setting_status.cursor_row));
+//	  memcpy(&coloum_alarm_position_cursor, &alarm_cursor_setting_status.cursor_colum, sizeof(alarm_cursor_setting_status.cursor_colum));
+
+	  *row_alarm_position_cursor = alarm_cursor_setting_status.cursor_row;
+	  *coloum_alarm_position_cursor = alarm_cursor_setting_status.cursor_colum;
 	  alarm_seeting_status = TRUE;
 	}
 
@@ -234,7 +240,9 @@ void APPIFEF_Set_Alarm_Status_Cfg(APPIF_alarm_cursor_setting_container * alarm_c
 
   if(NULL != alarm_container)
     {
-	  memcpy(&alarm_cursor_setting_status, &alarm_container, sizeof(alarm_cursor_setting_status));
+//	  memcpy(&alarm_cursor_setting_status, &alarm_container, sizeof(alarm_cursor_setting_status));
+
+	  alarm_cursor_setting_status = *alarm_container;
     }
 }
 

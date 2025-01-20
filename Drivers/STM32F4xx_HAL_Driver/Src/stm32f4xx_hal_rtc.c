@@ -1307,6 +1307,17 @@ HAL_StatusTypeDef HAL_RTC_SetAlarm_IT(RTC_HandleTypeDef *hrtc, RTC_AlarmTypeDef 
       }
     } while (__HAL_RTC_ALARM_GET_FLAG(hrtc, RTC_FLAG_ALRAWF) == 0U);
 
+    /*
+     * Patch from Jesus Rodriguez to avoid alarm to check date/day to be compared
+     *   The idea is that we are changing bit number 31 (MSK4) from register RTC_ALRMAR
+     *   This bit when 1; it will ignore in Alarm A the comparation of date/date.
+     *   The HAL library by default will check date/day.
+     * */
+
+    tmpreg |= (1u << 31u);
+
+	/**End of patch*/
+
     hrtc->Instance->ALRMAR = (uint32_t)tmpreg;
     /* Configure the Alarm A Subseconds register */
     hrtc->Instance->ALRMASSR = subsecondtmpreg;

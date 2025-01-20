@@ -20,6 +20,7 @@ typedef enum RTC_time_info_t
 	RTC_time_format,
 	RTC_year,
 	RTC_month,
+	RTC_Weekday,
 	RTC_day,
 
 	RTC_Time_Date_Max
